@@ -79,12 +79,12 @@ void loop() {
       if(leds[XY(p.x, p.y)] == (CRGB)BGCOLOUR) { //Player is moving into an empty pixel
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
       }
-      else if (hitPowerup(p.x, p.y)) {
-        applyPowerup(p);
-        spawnPowerup(leds);
-      }
       else {
-        explodeAt(leds, p.x, p.y);
+        for(int i = 1; i < 3; i++) {
+          //addPixelTween({&leds[XY(p.x-i, p.y)], CRGB::Yellow, CRGB::Red });
+          //addPixelTween(tweenPixelTo(leds[XY(p.x+i, p.y)], CRGB::Red));
+          explodeAt(leds, p.x, p.y);
+        }
       }
     }
   }

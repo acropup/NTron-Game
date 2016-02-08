@@ -1,7 +1,6 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-#include "Constants.h"
 
 struct button {
   int pin;  //The pin the button is connected to
