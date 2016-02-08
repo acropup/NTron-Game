@@ -91,9 +91,9 @@ void updatePlayerPosition(Player& p){
   p.y += p.dy;
   //Bounds check and wrap around the screen
   if(p.x == -1)   p.x = XMAX-1;
-  if(p.y == -1)   p.y = YMAX-1;
+  if(p.y == -1)   p.y = YMAX-3;
   if(p.x == XMAX) p.x = 0;
-  if(p.y == YMAX) p.y = 0;
+  if(p.y == YMAX-2) p.y = 0;
 }
 
 
