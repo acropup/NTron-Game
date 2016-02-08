@@ -1,7 +1,7 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-static const uint8_t DebounceMS = 40;
+#include "Constants.h"
 
 struct button {
   int pin;  //The pin the button is connected to
@@ -19,7 +19,7 @@ Button CreateButton(uint8_t pin) {
 
 void Update(Button &btn) {
   //Ignore any state change within the debounce time window
-  if(millis() - btn.stateChangeTime > DebounceMS) {
+  if(millis() - btn.stateChangeTime > DEBOUNCE_MS) {
     bool newState = digitalRead(btn.pin);
     if(btn.isPressed != newState){ //Button has changed state
       if(btn.isPressed == HIGH && newState == LOW){ //Button down event

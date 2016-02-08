@@ -6,10 +6,11 @@
 #include "PixelTweening.h"
 #include "TronPlayer.h"
 #include "Explosion.h"
+#include "Powerup.h"
+#include "PowerBar.h"
+#include "Constants.h"
 //TODO: In FastLED lib8tion.h, can use beat8() and similar functions for generating waves
 
-#define NUM_LEDS_PER_STRIP 256
-#define NUM_STRIPS 3
 
 CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP];
 
@@ -39,6 +40,14 @@ void setup() {
   // OctoWS2811: 2,14,7,8,6,20,21,5
   FastLED.addLeds<OCTOWS2811,RGB>(leds, NUM_LEDS_PER_STRIP);
   FastLED.setBrightness(32);
+
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
 }
 
 void loop() {
@@ -49,6 +58,9 @@ void loop() {
     timeElapsed -= msPerFrame;
     //Finish up the last frame
     finalizeTweens();
+
+    drawPowerups(leds);
+    updatePowerBar(leds);
     
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);
@@ -64,15 +76,15 @@ void loop() {
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);
       //Check for collisions
-      if(leds[XY(p.x, p.y)] == CRGB(0)) { //Player is moving into an empty pixel
+      if(leds[XY(p.x, p.y)] == (CRGB)BGCOLOUR) { //Player is moving into an empty pixel
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
       }
+      else if (hitPowerup(p.x, p.y)) {
+        applyPowerup(p);
+        spawnPowerup(leds);
+      }
       else {
-        for(int i = 1; i < 3; i++) {
-          //addPixelTween({&leds[XY(p.x-i, p.y)], CRGB::Yellow, CRGB::Red });
-          //addPixelTween(tweenPixelTo(leds[XY(p.x+i, p.y)], CRGB::Red));
-          explodeAt(leds, p.x, p.y);
-        }
+        explodeAt(leds, p.x, p.y);
       }
     }
   }

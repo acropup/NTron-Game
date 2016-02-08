@@ -2,18 +2,16 @@
 #define TRONPLAYER_H
 
 #include "Button.h"
+#include "Constants.h"
 
 struct player {
   Button  btnL;    //Button that turns player Left (CCW)
   Button  btnR;    //Button that turns player Right (CW)
-//  uint8_t btnPinL; 
-//  uint8_t btnPinR; 
   uint8_t btnPinA; //Button that leaves fences behind player
   uint8_t btnPinB; //Button that shoots bombs
   bool isFencing;  //Player is actively leaving fences along their trail
   bool isFiring;   //Player is firing a bomb
   bool isAlive;    //Player is still alive
-  unsigned long isTurning; //Player is turning (LSB is 0 if turning left, 1 if turning right, other bits is millis() for debouncing)
   int8_t x;  //Position on screen
   int8_t y;
   int8_t dx; //Direction traveling. Either dx or dy should be 0.
@@ -34,7 +32,7 @@ void setScreenDims(uint8_t xmax, uint8_t ymax) {
 }
 
 void initPlayer(uint8_t pid, uint8_t leftPin, uint8_t rightPin, uint8_t aPin, uint8_t bPin, int8_t posX, int8_t posY) {
-  players[pid] = { CreateButton(leftPin), CreateButton(rightPin), aPin, bPin, false, false, true, 0, posX, posY, 0, 0, 0 };
+  players[pid] = { CreateButton(leftPin), CreateButton(rightPin), aPin, bPin, false, false, true, posX, posY, 1, 0, 0 };
   //pinMode(leftPin, INPUT_PULLUP);
   //pinMode(rightPin, INPUT_PULLUP);
   pinMode(aPin, INPUT_PULLUP);
@@ -50,18 +48,6 @@ void checkButtons(Player& p){
   p.isFiring  |= (digitalRead(p.btnPinB) == LOW);
   Update(p.btnL);
   Update(p.btnR);
-  /*
-  if(!p.isTurning) {
-    if(digitalRead(p.btnPinL) == LOW) {
-      //Record time for debouncing, and set LSB to 0 to denote a left turn
-      p.isTurning = millis() & ~1ul;
-    }
-    else if(digitalRead(p.btnPinR) == LOW) {
-      //Record time for debouncing, and set LSB to 1 to denote a right turn
-      p.isTurning = millis() & 1;
-    }
-  }
-  */
 }
 
 //Should check buttons as often as possible, not just every frame
@@ -97,48 +83,7 @@ void updatePlayerDirection(Player& p){
     }
   }
   bL.wasPressed = false;
-  bR.wasPressed = true;
-  /*
-  if(p.isTurning && millis() - p.isTurning > DebounceMS) {
-    //LSB == 0 means turn left, LSB == 1 means turn right
-    if((p.isTurning & 1) == 0) {
-      //Turn left
-      if(p.dx) {
-        p.dy = p.dx;
-        p.dx = 0;
-      } 
-      else {
-        p.dx = -p.dy;
-        p.dy = 0;
-      }
-    }
-    else {
-      //Turn right
-      if(p.dx) {
-        p.dy = -p.dx;
-        p.dx = 0;
-      } 
-      else {
-        p.dx = p.dy;
-        p.dy = 0;
-      }
-    }
-    //Reset
-    p.isTurning = 0;
-  }
-  */
-  /*
-  int x = analogRead(p.btnPinL);
-  int y = analogRead(p.btnPinL);
-  if (abs(x) > abs(y)) {
-    p.dx = (x > 0) ? 1 : -1;
-    p.dy = 0;
-  }
-  else {
-    p.dx = 0;
-    p.dy = (y > 0) ? 1 : -1;
-  }
-  */
+  bR.wasPressed = false;
 }
 
 void updatePlayerPosition(Player& p){
@@ -146,9 +91,23 @@ void updatePlayerPosition(Player& p){
   p.y += p.dy;
   //Bounds check and wrap around the screen
   if(p.x == -1)   p.x = XMAX-1;
-  if(p.y == -1)   p.y = YMAX-1;
+  if(p.y == -1)   p.y = YMAX-3;
   if(p.x == XMAX) p.x = 0;
-  if(p.y == YMAX) p.y = 0;
+  if(p.y == YMAX-2) p.y = 0;
+}
+
+
+void moveRandom(uint8_t pid) {
+    players[pid].x = random(WIDTH);
+    players[pid].y = random(HEIGHT - 2); //height minus bottom bar
+    players[pid].dx = 0;
+    players[pid].dy = 0;
+    switch(random(4)) {
+      case 0: players[pid].dx = 1; break;
+      case 1: players[pid].dx = -1; break;
+      case 2: players[pid].dy = 1; break;
+      case 3: players[pid].dy = -1; break;
+    }
 }
 
 //Call this once per frame before checking if any players have collided
@@ -163,6 +122,10 @@ void updatePlayers(){
     p.isFencing = false;
     p.isFiring = false;
   }
+}
+
+void applyPowerup(Player& p) {
+  p.power++;
 }
 
 #endif
