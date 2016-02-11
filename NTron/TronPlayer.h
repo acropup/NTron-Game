@@ -16,7 +16,7 @@ struct player {
   int8_t y;
   int8_t dx; //Direction traveling. Either dx or dy should be 0.
   int8_t dy;
-  uint8_t power; //Power level for using special ability
+  uint8_t power; //Power level for using special ability. 16=1px Fence costs 2, powerup gives 16, auto-regen 1 per 2 frames.
 };
 
 typedef struct player Player;
@@ -25,6 +25,9 @@ static const uint8_t NUMPLAYERS = 2;
 Player players[NUMPLAYERS];
 uint8_t XMAX;
 uint8_t YMAX;
+
+uint8_t powerRegenRate = 50; //Percent of a power point regenerated per frame
+uint8_t powerRegenCnt = 0;   //When this gets to 100, give all players 1 power
 
 void setScreenDims(uint8_t xmax, uint8_t ymax) {
   XMAX = xmax;
@@ -56,6 +59,18 @@ void checkButtons(){
   while(pid > 0){
     checkButtons(getPlayer(--pid));
   }
+}
+
+/* Checks if player has pressed the isFencing button,
+ * and if they have enough power to lay a fence.
+ * If so, consumes power and returns true.
+ */
+bool isPlayerFencing(Player& p){
+  if(p.isFencing && p.power > 1) {
+    p.power-=2;
+    return true;
+  }
+  return false;
 }
 
 void updatePlayerDirection(Player& p){
@@ -112,11 +127,22 @@ void moveRandom(uint8_t pid) {
 
 //Call this once per frame before checking if any players have collided
 void updatePlayers(){
+  //Player power regenerates slowly over time
+  uint8_t regenAmt = 0;
+  powerRegenCnt += powerRegenRate;
+  if(powerRegenCnt >= 100) {
+    powerRegenCnt -= 100;
+    regenAmt = 1;
+  }
+  
   uint8_t pid = NUMPLAYERS;
   while(pid > 0){
     Player& p = getPlayer(--pid);
     updatePlayerDirection(p);
     updatePlayerPosition(p);
+    p.power += regenAmt;
+    //Check for overflow
+    if(p.power < regenAmt) p.power = 255;
 
     //If the buttons are being held down, these will be set true again before the next frame
     p.isFencing = false;
@@ -125,7 +151,9 @@ void updatePlayers(){
 }
 
 void applyPowerup(Player& p) {
-  p.power++;
+  p.power+=16;
+  //Check for overflow
+  if(p.power < 16) p.power = 255;
 }
 
 #endif

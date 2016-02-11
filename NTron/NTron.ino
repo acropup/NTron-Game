@@ -1,7 +1,7 @@
 #define USE_OCTOWS2811
-#include<OctoWS2811.h>
-#include<FastLED.h>
-#include<elapsedMillis.h>
+#include <OctoWS2811.h>
+#include <FastLED.h>
+#include <elapsedMillis.h>
 #include "XYmatrix.h"
 #include "PixelTweening.h"
 #include "TronPlayer.h"
@@ -23,13 +23,8 @@ static uint8_t P1BPin = -1;
 static uint8_t P2APin = 1;
 static uint8_t P2BPin = -1;
 
-#define FENCECOLOUR CRGB::Blue
-#define BGCOLOUR CRGB::Black
-#define PLAYERCOLOUR CRGB::Green
-
 elapsedMillis timeElapsed;
 unsigned long msPerFrame = 150;
-
 
 
 void setup() {
@@ -60,11 +55,11 @@ void loop() {
     finalizeTweens();
 
     drawPowerups(leds);
-    updatePowerBar(leds);
     
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);
-      if(p.isFencing) {
+      //p.power += 1;
+      if(isPlayerFencing(p)) {
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], FENCECOLOUR));
       }
       else {
@@ -73,20 +68,25 @@ void loop() {
     }
     //Move players based on analog joystick inputs
     updatePlayers();
+    
+    //Check for collisions
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);
-      //Check for collisions
       if(leds[XY(p.x, p.y)] == (CRGB)BGCOLOUR) { //Player is moving into an empty pixel
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
       }
-      else if (hitPowerup(p.x, p.y)) {
+      else if (hitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
         applyPowerup(p);
+        spawnPowerup(leds);
+        spawnPowerup(leds); //TODO: Remove these, just useful for testing
+        spawnPowerup(leds);
         spawnPowerup(leds);
       }
       else {
         explodeAt(leds, p.x, p.y);
       }
     }
+    updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
   }
 
   //Tween pixels while in between frames

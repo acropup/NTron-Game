@@ -16,10 +16,11 @@ Powerup powerups[MAX_POWERUPS];
 int iPowerup = 0;
 
 void spawnPowerup(CRGB* leds) {
+  if(iPowerup >= MAX_POWERUPS) return;
+  
   int8_t x, y;
   x = random(WIDTH);
   y = random(HEIGHT - 2);
-  
   if (leds[XY(x, y)] != (CRGB)BGCOLOUR) {
     return;
   }
@@ -29,12 +30,6 @@ void spawnPowerup(CRGB* leds) {
 
 void drawPowerups(CRGB* leds) {
   for (int i = 0; i < iPowerup; i++) {
-    /*addPixelTween({
-      &leds[XY(powerups[i].x, powerups[i].y)], 
-      CHSV(powerups[i].hue, ~0, ~0), 
-      CHSV(powerups[i].hue + 20, ~0, ~0)});
-    */
-    
     powerups[i].hue += POWERUP_HUE_SPEED;
     addPixelTween(tweenPixelTo(leds[powerups[i].pos], 
       CHSV(powerups[i].hue, ~0, ~0)));
