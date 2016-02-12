@@ -5,58 +5,90 @@
 #include "Constants.h"
 #include "PixelTweening.h"
 
+static const uint8_t yBottom = HEIGHT - 1;
+
 uint8_t offset = 0;
 uint8_t oldLeft = 0;
 uint8_t oldRight = 0;
 
-//Draw the bar across the bottom of the screen, to mark off the power levels
-void drawPowerBar(CRGB* leds) {
+inline CRGB CRGBgrayscale(uint8_t lightness) {
+  return CRGB(lightness, lightness, lightness);
 }
 
-//Draw the power level pixels
-void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
-  //If left power increase is significant
-  if(leftPower > oldLeft && leftPower - oldLeft > 8) {
-    
-  }
-  if(rightPower > oldRight && rightPower - oldRight > 8) {
-    
-  }
-  oldLeft  = leftPower;
-  oldRight = rightPower;
-
-  //Draw power level on left side of screen
-  int y = HEIGHT - 1;
+//Draw power level on left side of screen. Returns column where power bar ends.
+uint8_t drawLeftPowerBar(CRGB* leds, uint8_t leftPower){
   int xl = 0;
   while(leftPower >= 16) { //A full pixel represents 16 power
-    leds[XY(xl, y)] = CRGB(255, 255, 255);
+    leds[XY(xl, yBottom)] = CRGB(255, 255, 255);
     leftPower-=16;
     xl++;
   }
   int bright = map(leftPower, 0, 15, 0, 255); //Partial brightness for last pixel
-  addPixelTween(tweenPixelTo(leds[XY(xl, y)], CRGB(bright, bright, bright)));
+  addPixelTween(tweenPixelTo(leds[XY(xl, yBottom)], CRGBgrayscale(bright)));
+  return xl;
+}
 
-  //Draw power level on right side of screen
+//Draw power level on right side of screen. Returns column where power bar ends.
+uint8_t drawRightPowerBar(CRGB* leds, uint8_t rightPower){
   int xr = WIDTH - 1;
   while(rightPower >= 16) { //A full pixel represents 16 power
-    leds[XY(xr, y)] = CRGB(255, 255, 255);
+    leds[XY(xr, yBottom)] = CRGB(255, 255, 255);
     rightPower-=16;
     xr--;
   }
-  bright = map(rightPower, 0, 15, 0, 255); //Partial brightness for last pixel
-  addPixelTween(tweenPixelTo(leds[XY(xr, y)], CRGB(bright, bright, bright)));
-  
-  while(xl <= xr) { //Make sure the remaining pixels are black
-    leds[XY(xl++, y)] = BGCOLOUR;
+  int bright = map(rightPower, 0, 15, 0, 255); //Partial brightness for last pixel
+  addPixelTween(tweenPixelTo(leds[XY(xr, yBottom)], CRGBgrayscale(bright)));
+  return xr;
+}
+
+//Make a row of pixels black, from column xl to column xr
+void clearRowPixels(CRGB* leds, uint8_t yRow, uint8_t xl, uint8_t xr){
+  while(xl <= xr) {
+    leds[XY(xl++, yRow)] = BGCOLOUR;
+  }
+}
+
+//Draw the power level pixels
+void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
+  //TODO: optimize these functions based on oldLeft and oldRight values
+  uint8_t xl = drawLeftPowerBar(leds, leftPower);
+  uint8_t xr = drawRightPowerBar(leds, rightPower);
+  //Make sure the remaining pixels are black
+  clearRowPixels(leds, yBottom, xl, xr);
+
+  //If power increase is significant on left or right side, player got a powerup
+  bool lPowerup = (leftPower > oldLeft && leftPower - oldLeft > 8);
+  bool rPowerup = (rightPower > oldRight && rightPower - oldRight > 8);
+  uint8_t y = yBottom - 1;
+  if(lPowerup) {
+    for (uint8_t x = WIDTH/2-1; x >= 0; x--) {
+      leds[XY(x, y)] = CRGB::White;
+    }
+  }
+  if(rPowerup) {
+    for (uint8_t x = WIDTH/2; x < WIDTH; x++) {
+      leds[XY(x, y)] = CRGB::White;
+    }
   }
 
+  /*
   //Constant light wave
-  y = HEIGHT - 2;
   offset -= 20;
   for (uint8_t x = 0; x < WIDTH; x++) {
     addPixelTween(tweenPixelTo(leds[XY(x, y)], 
-      CHSV(0, 0, (sin(((x*19+offset)/128.0) * 3.14159265) * 128) + 128)));
+      CRGBgrayscale((sin(((x*19+offset)/128.0) * 3.14159265) * 128) + 128)));
   }
+*/
+  //Fade to black
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    uint8_t brightness = leds[XY(x, y)].r;
+    if(brightness) {
+      addPixelTween(tweenPixelTo(leds[XY(x, y)], CRGBgrayscale(brightness/2)));
+    }
+  }
+  
+  oldLeft  = leftPower;
+  oldRight = rightPower;
 }
 
 #endif
