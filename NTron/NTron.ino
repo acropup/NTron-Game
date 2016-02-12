@@ -19,16 +19,16 @@ static uint8_t P1RPin = 22;
 static uint8_t P2LPin = 19;
 static uint8_t P2RPin = 18;
 static uint8_t P1APin = 0;
-static uint8_t P1BPin = -1;
-static uint8_t P2APin = 1;
+static uint8_t P1BPin = 1;
+static uint8_t P2APin = -1;
 static uint8_t P2BPin = -1;
 
 elapsedMillis timeElapsed;
-unsigned long msPerFrame = 150;
+unsigned long msPerFrame = 500;
 
 
 void setup() {
-  setScreenDims(32, 24);
+  setScreenDims(WIDTH, HEIGHT);
   initPlayer(0, P1LPin, P1RPin, P1APin, P1BPin, 3, 3);
   initPlayer(1, P2LPin, P2RPin, P2APin, P2BPin, 28, 20);
   // Pin layouts on the teensy 3:
@@ -45,6 +45,8 @@ void setup() {
   spawnPowerup(leds);
 }
 
+int rpos = 4;
+
 void loop() {
   //Check for user input
   checkButtons();
@@ -53,12 +55,22 @@ void loop() {
     timeElapsed -= msPerFrame;
     //Finish up the last frame
     finalizeTweens();
+    /*
+leds[XY(rpos-2, 6)] = BGCOLOUR;
+addPixelTween({ &leds[XY(rpos-1, 6)], ROCKETFADECOLOUR, BGCOLOUR });
+addPixelTween({ &leds[XY(rpos  , 6)], ROCKETCOLOUR, ROCKETFADECOLOUR });
+leds[XY(rpos+1, 6)] = ROCKETCOLOUR;
+addPixelTween({ &leds[XY(rpos+2, 6)], BGCOLOUR, ROCKETCOLOUR });
+rpos+=2;
+if(rpos >= WIDTH) rpos -= WIDTH;
+*/
+
+
 
     drawPowerups(leds);
     
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);
-      //p.power += 1;
       if(isPlayerFencing(p)) {
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], FENCECOLOUR));
       }
@@ -66,8 +78,10 @@ void loop() {
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], BGCOLOUR));
       }
     }
-    //Move players based on analog joystick inputs
+    //Move players, update power, fire rockets
     updatePlayers();
+
+    updateRockets(leds);
     
     //Check for collisions
     for(int pid = 0; pid < 2; pid++) {
@@ -86,6 +100,7 @@ void loop() {
         explodeAt(leds, p.x, p.y);
       }
     }
+    //TODO, need to check player-player collisions, if(p1.x == p2.x && p1.y == p2.y)
     updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
   }
 

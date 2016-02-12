@@ -27,29 +27,27 @@ void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
 
   //Draw power level on left side of screen
   int y = HEIGHT - 1;
-  int x = 0;
+  int xl = 0;
   while(leftPower >= 16) { //A full pixel represents 16 power
-    leds[XY(x, y)] = CRGB(255, 255, 255);
+    leds[XY(xl, y)] = CRGB(255, 255, 255);
     leftPower-=16;
-    x++;
+    xl++;
   }
   int bright = map(leftPower, 0, 15, 0, 255); //Partial brightness for last pixel
-  addPixelTween(tweenPixelTo(leds[XY(x, y)], CRGB(bright, bright, bright)));
-  while(++x < WIDTH / 2) {                    //Make sure the remaining pixels are black
-    leds[XY(x, y)] = BGCOLOUR;
-  }
+  addPixelTween(tweenPixelTo(leds[XY(xl, y)], CRGB(bright, bright, bright)));
 
   //Draw power level on right side of screen
-  x = WIDTH - 1;
+  int xr = WIDTH - 1;
   while(rightPower >= 16) { //A full pixel represents 16 power
-    leds[XY(x, y)] = CRGB(255, 255, 255);
+    leds[XY(xr, y)] = CRGB(255, 255, 255);
     rightPower-=16;
-    x--;
+    xr--;
   }
   bright = map(rightPower, 0, 15, 0, 255); //Partial brightness for last pixel
-  addPixelTween(tweenPixelTo(leds[XY(x, y)], CRGB(bright, bright, bright)));
-  while(--x >= WIDTH / 2) {                //Make sure the remaining pixels are black
-    leds[XY(x, y)] = BGCOLOUR;
+  addPixelTween(tweenPixelTo(leds[XY(xr, y)], CRGB(bright, bright, bright)));
+  
+  while(xl <= xr) { //Make sure the remaining pixels are black
+    leds[XY(xl++, y)] = BGCOLOUR;
   }
 
   //Constant light wave
