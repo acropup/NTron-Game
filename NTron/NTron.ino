@@ -24,7 +24,7 @@ static uint8_t P2APin = -1;
 static uint8_t P2BPin = -1;
 
 elapsedMillis timeElapsed;
-unsigned long msPerFrame = 500;
+unsigned long msPerFrame = 150;
 
 
 void setup() {
@@ -35,6 +35,7 @@ void setup() {
   // OctoWS2811: 2,14,7,8,6,20,21,5
   FastLED.addLeds<OCTOWS2811,RGB>(leds, NUM_LEDS_PER_STRIP);
   FastLED.setBrightness(32);
+  FastLED.setDither(0); //This prevents FastLED from doing temporal dithering, which creates noticeable flicker
 
   spawnPowerup(leds);
   spawnPowerup(leds);
@@ -67,7 +68,6 @@ if(rpos >= WIDTH) rpos -= WIDTH;
 
 
 
-    drawPowerups(leds);
     
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);
@@ -91,6 +91,7 @@ if(rpos >= WIDTH) rpos -= WIDTH;
       }
       else if (hitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
         applyPowerup(p);
+        addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
         spawnPowerup(leds);
         spawnPowerup(leds); //TODO: Remove these, just useful for testing
         spawnPowerup(leds);
@@ -100,6 +101,7 @@ if(rpos >= WIDTH) rpos -= WIDTH;
         explodeAt(leds, p.x, p.y);
       }
     }
+    drawPowerups(leds);
     //TODO, need to check player-player collisions, if(p1.x == p2.x && p1.y == p2.y)
     updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
   }

@@ -2,8 +2,9 @@
 #define ROCKET_H
 
 #include <FastLED.h>
-#include "PixelTweening.h"
 #include "Constants.h"
+#include "PixelTweening.h"
+#include "Explosion.h"
 
 typedef struct Rocket_ {
   int8_t x;  //Position on screen of the nose of the rocket
@@ -49,7 +50,7 @@ bool stepRocket(CRGB leds[], Rocket& r) {
 void drawRocket(CRGB leds[], Rocket& r) {
   int8_t x1, x2, x3, x4, x5;
   int8_t y1, y2, y3, y4, y5;
-  if(r.x) {
+  if(r.dx) { //Moving along x-axis
     x1 = r.x;
     x2 = x1 - r.dx;
     x3 = x2 - r.dx;
@@ -57,7 +58,7 @@ void drawRocket(CRGB leds[], Rocket& r) {
     x5 = x4 - r.dx;
     y1 = y2 = y3 = y4 = y5 = r.y;
   }
-  else {
+  else {     //Moving along y-axis
     y1 = r.y;
     y2 = y1 - r.dy;
     y3 = y2 - r.dy;
@@ -83,11 +84,35 @@ void drawRocket(CRGB leds[], Rocket& r) {
   }
 }
 
+void explodeRocket(CRGB leds[], Rocket& r) {
+  int8_t x3, x4;
+  int8_t y3, y4;
+  if(r.dx) { //Moving along x-axis
+    x3 = r.x - 2*r.dx;
+    x4 = x3 - r.dx;
+    y3 = y4 = r.y;
+  }
+  else {     //Moving along y-axis
+    y3 = r.y - 2*r.dy;
+    y4 = y3 - r.dy;
+    x3 = x4 = r.x;
+  }
+  //TODO: this isn't perfect and should depend on r.age as well
+  addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR));
+  addPixelTween(tweenPixelTo(leds[XY(x4, y4)], BGCOLOUR));
+  explodeAt(leds, r.x, r.y);
+}
+
 void updateRockets(CRGB leds[]) {
   uint8_t rid = numRockets;
   while(rid > 0){
     Rocket& r = getRocket(--rid);
-    stepRocket(leds, r);
+    //Move the rocket and check for collisions
+    if(stepRocket(leds, r)) {
+      explodeRocket(leds, r);
+      explodeAt(leds, r.x, r.y);
+      numRockets--; continue; //TODO: this is not good enough, lol
+    }
     if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {
       numRockets--; continue; //TODO: this is not good enough, lol
     }

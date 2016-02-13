@@ -113,7 +113,7 @@ void maybeFireRocket(Player& p){
   Button &b = p.btnFire;
   if(b.wasPressed && p.power > 16) {
     p.power-=16;
-    fireRocket(p.x+1, p.y+1, p.dx, p.dy);
+    fireRocket(p.x, p.y, p.dx, p.dy);
   }
   b.wasPressed = false;
 }
