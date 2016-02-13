@@ -110,7 +110,6 @@ void updateRockets(CRGB leds[]) {
     //Move the rocket and check for collisions
     if(stepRocket(leds, r)) {
       explodeRocket(leds, r);
-      explodeAt(leds, r.x, r.y);
       numRockets--; continue; //TODO: this is not good enough, lol
     }
     if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {

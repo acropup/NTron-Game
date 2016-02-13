@@ -90,8 +90,8 @@ if(rpos >= WIDTH) rpos -= WIDTH;
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
       }
       else if (hitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
-        applyPowerup(p);
         addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
+        applyPowerup(p);
         spawnPowerup(leds);
         spawnPowerup(leds); //TODO: Remove these, just useful for testing
         spawnPowerup(leds);
