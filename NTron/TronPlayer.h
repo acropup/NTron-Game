@@ -5,7 +5,7 @@
 #include "Button.h"
 #include "Rocket.h"
 
-struct player {
+typedef struct Player_ {
   Button  btnL;    //Button that turns player Left (CCW)
   Button  btnR;    //Button that turns player Right (CW)
   Button  btnFire; //Button that fires rockets
@@ -17,9 +17,7 @@ struct player {
   int8_t dx; //Direction traveling. Either dx or dy should be 0.
   int8_t dy;
   uint8_t power; //Power level for using special ability. 16=1px Fence costs 2, powerup gives 16, auto-regen 1 per 2 frames.
-};
-
-typedef struct player Player;
+} Player;
 
 static const uint8_t NUMPLAYERS = 2;
 Player players[NUMPLAYERS];

@@ -98,10 +98,11 @@ if(rpos >= WIDTH) rpos -= WIDTH;
         spawnPowerup(leds);
       }
       else {
-        explodeAt(leds, p.x, p.y);
+        explodeAt(p.x, p.y, 1);
       }
     }
     drawPowerups(leds);
+    drawExplosions(leds);
     //TODO, need to check player-player collisions, if(p1.x == p2.x && p1.y == p2.y)
     updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
   }

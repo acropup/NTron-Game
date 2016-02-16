@@ -3,12 +3,11 @@
 
 #include<FastLED.h> //CRGB data type defined in FastLED library, pixeltypes.h
 
-struct pixeltween {
+typedef struct PixelTween_ {
   CRGB* pixel;      //Pointer to pixel location in buffer
   CRGB fromColour;  //The colour the tween starts at
   CRGB toColour;    //The colour the tween ends at
-};
-typedef struct pixeltween PixelTween;
+} PixelTween;
 
 #define MAX_TWEENS 128 //Maximum number of pixels that can be tweened simultaneously
 PixelTween tweens[MAX_TWEENS];

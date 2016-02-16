@@ -17,6 +17,7 @@
 #define POWERUP_HUE_SPEED 30
 
 #define MAX_ROCKETS 16
+#define MAX_EXPLOSIONS 16
 
 #define DEBOUNCE_MS 40
 

@@ -68,39 +68,58 @@ void drawRocket(CRGB leds[], Rocket& r) {
   }
   //Drawing rocket front to back, making sure not to overwrite the player pixel that fired it
   addPixelTween({ &leds[XY(x1, y1)], BGCOLOUR, ROCKETCOLOUR }); //Nose
-  if(r.age == 1) {
+  if(r.age == 1) { //First time drawing rocket, so it's only 2 px ahead of the player
     addPixelTween({ &leds[XY(x2, y2)], ROCKETCOLOUR, BGCOLOUR });
   }
   else {
     leds[XY(x2, y2)] = ROCKETCOLOUR;
-    if(r.age == 2) {
+    if(r.age == 2) { //Second frame of rocket, so it's maximum 3 px ahead of the player
       addPixelTween({ &leds[XY(x3, y3)], ROCKETCOLOUR, BGCOLOUR });
     }
-    else {
+    else { //Third frame of rocket, rocket is at least 4 frames ahead of player
       addPixelTween({ &leds[XY(x3, y3)], ROCKETCOLOUR, ROCKETFADECOLOUR });
       addPixelTween({ &leds[XY(x4, y4)], ROCKETFADECOLOUR, BGCOLOUR }); //Tail
-      leds[XY(x5, y5)] = BGCOLOUR;
+      leds[XY(x5, y5)] = BGCOLOUR; //Rocket moves two px per frame, so last two must end in BGCOLOUR
     }
   }
 }
 
+//Draws an explosion for Rocket r and cleans up the trail of r from the previous frame
 void explodeRocket(CRGB leds[], Rocket& r) {
-  int8_t x3, x4;
-  int8_t y3, y4;
+  //The explosion automatically wipes out rocket positions (x1, y1) and (x2, y2)
+  explodeAt(r.x, r.y, 1);
+  //Remove the rocket trails from the previous frame's rendering of the rocket
+  int8_t x3, x4, x5;
+  int8_t y3, y4, y5;
   if(r.dx) { //Moving along x-axis
     x3 = r.x - 2*r.dx;
     x4 = x3 - r.dx;
-    y3 = y4 = r.y;
+    x5 = x4 - r.dx;
+    y3 = y4 = y5 = r.y;
   }
   else {     //Moving along y-axis
     y3 = r.y - 2*r.dy;
     y4 = y3 - r.dy;
-    x3 = x4 = r.x;
+    y5 = y4 - r.dy;
+    x3 = x4 = x5 = r.x;
   }
-  //TODO: this isn't perfect and should depend on r.age as well
-  addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR));
-  addPixelTween(tweenPixelTo(leds[XY(x4, y4)], BGCOLOUR));
-  explodeAt(leds, r.x, r.y);
+  //if r.age == 1, there is no cleanup to do because the rocket hasn't ever been rendered yet
+  addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 2
+  if(r.age > 2) {
+    addPixelTween(tweenPixelTo(leds[XY(x4, y4)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 3
+    if(r.age > 3) {
+      addPixelTween(tweenPixelTo(leds[XY(x5, y5)], BGCOLOUR)); //TODO: Should maybe just set to black, should test this
+    }
+  }
+}
+
+//Removes rocket from the rockets array, shifts other rockets over
+void removeRocket(uint8_t rid) {
+  numRockets--;
+  while(rid < numRockets) {
+    rockets[rid] = rockets[rid+1];
+    rid++;
+  }
 }
 
 void updateRockets(CRGB leds[]) {
@@ -110,10 +129,13 @@ void updateRockets(CRGB leds[]) {
     //Move the rocket and check for collisions
     if(stepRocket(leds, r)) {
       explodeRocket(leds, r);
-      numRockets--; continue; //TODO: this is not good enough, lol
+      removeRocket(rid);
+      continue;
     }
+    //If rocket runs out of bounds
     if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {
-      numRockets--; continue; //TODO: this is not good enough, lol
+      removeRocket(rid);
+      continue; //TODO: There will still be some rocket trail left over!
     }
     drawRocket(leds, r);
   }

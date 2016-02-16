@@ -3,13 +3,12 @@
 
 #include "Constants.h"
 
-struct button {
+typedef struct Button_ {
   int pin;  //The pin the button is connected to
   int isPressed; //If the button is pressed (as of when Update() was last called)
   unsigned long stateChangeTime; //When the last state change happened (for debouncing)
   bool wasPressed;
-};
-typedef struct button Button;
+} Button;
 
 Button CreateButton(uint8_t pin) {
   Button btn = { pin, HIGH, 0, false };
