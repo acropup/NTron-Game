@@ -15,7 +15,9 @@ int numTweens = 0;
 
 // Adds a PixelTween definition to be tweened over the next frame
 inline void addPixelTween(const PixelTween& pt) {
-  tweens[numTweens++] = pt;
+  if(numTweens < MAX_TWEENS) {
+    tweens[numTweens++] = pt;
+  }
 }
 
 // Create PixelTween for pixel from current pixel colour to newColour

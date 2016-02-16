@@ -44,9 +44,10 @@ void setup() {
   spawnPowerup(leds);
   spawnPowerup(leds);
   spawnPowerup(leds);
+  for(int j = 0; j < 20; j++) {
+    leds[XY(30,j)] = FENCECOLOUR;
+  }
 }
-
-int rpos = 4;
 
 void loop() {
   //Check for user input
@@ -56,18 +57,6 @@ void loop() {
     timeElapsed -= msPerFrame;
     //Finish up the last frame
     finalizeTweens();
-    /*
-leds[XY(rpos-2, 6)] = BGCOLOUR;
-addPixelTween({ &leds[XY(rpos-1, 6)], ROCKETFADECOLOUR, BGCOLOUR });
-addPixelTween({ &leds[XY(rpos  , 6)], ROCKETCOLOUR, ROCKETFADECOLOUR });
-leds[XY(rpos+1, 6)] = ROCKETCOLOUR;
-addPixelTween({ &leds[XY(rpos+2, 6)], BGCOLOUR, ROCKETCOLOUR });
-rpos+=2;
-if(rpos >= WIDTH) rpos -= WIDTH;
-*/
-
-
-
     
     for(int pid = 0; pid < 2; pid++) {
       Player& p = getPlayer(pid);

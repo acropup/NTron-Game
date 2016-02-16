@@ -20,11 +20,22 @@ int numRockets = 0;
 //Fires a rocket from position (fromx, fromy) in the direction (dx, dy).
 //dx or dy must be 0, the other must be ±1.
 void fireRocket(int8_t fromx, int8_t fromy, int8_t dx, int8_t dy) {
-  rockets[numRockets++] = (Rocket) { fromx, fromy, dx, dy, 0 };
+  if(numRockets < MAX_ROCKETS) {
+    rockets[numRockets++] = (Rocket) { fromx, fromy, dx, dy, 0 };
+  }
 }
 
 inline Rocket& getRocket(uint8_t rid){
   return rockets[rid];
+}
+
+//Removes rocket from the rockets array, shifts other rockets over
+void removeRocket(uint8_t rid) {
+  numRockets--;
+  while(rid < numRockets) {
+    rockets[rid] = rockets[rid+1];
+    rid++;
+  }
 }
 
 //Moves Rocket one frame forward. Rocket moves two pixels per frame.
@@ -113,15 +124,6 @@ void explodeRocket(CRGB leds[], Rocket& r) {
   }
 }
 
-//Removes rocket from the rockets array, shifts other rockets over
-void removeRocket(uint8_t rid) {
-  numRockets--;
-  while(rid < numRockets) {
-    rockets[rid] = rockets[rid+1];
-    rid++;
-  }
-}
-
 void updateRockets(CRGB leds[]) {
   uint8_t rid = numRockets;
   while(rid > 0){
@@ -135,7 +137,7 @@ void updateRockets(CRGB leds[]) {
     //If rocket runs out of bounds
     if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {
       removeRocket(rid);
-      continue; //TODO: There will still be some rocket trail left over!
+      continue; //TODO: Doesn't catch bounds error off the right side of bottom rown. Also, there will still be some rocket trail left over!
     }
     drawRocket(leds, r);
   }
