@@ -95,24 +95,25 @@ void drawRocket(CRGB leds[], Rocket& r) {
   }
 }
 
-//Draws an explosion for Rocket r and cleans up the trail of r from the previous frame
-void explodeRocket(CRGB leds[], Rocket& r) {
-  //The explosion automatically wipes out rocket positions (x1, y1) and (x2, y2)
-  explodeAt(r.x, r.y, 1);
-  //Remove the rocket trails from the previous frame's rendering of the rocket
-  int8_t x3, x4, x5;
-  int8_t y3, y4, y5;
+//Remove the rocket trails from the previous frame's rendering of the rocket
+void clearRocketTrail(CRGB leds[], Rocket& r) {
+  //If there's an explosion at (r.x, r.y), it automatically wipes out rocket positions (x1, y1) and (x2, y2).
+  //We should keep that in mind and avoid tweening when the tween might overlap with an explosion.
+  int8_t x2, x3, x4, x5;
+  int8_t y2, y3, y4, y5;
   if(r.dx) { //Moving along x-axis
-    x3 = r.x - 2*r.dx;
+    x2 = r.x - r.dx;
+    x3 = x2 - r.dx;
     x4 = x3 - r.dx;
     x5 = x4 - r.dx;
-    y3 = y4 = y5 = r.y;
+    y2 = y3 = y4 = y5 = r.y;
   }
   else {     //Moving along y-axis
-    y3 = r.y - 2*r.dy;
+    y2 = r.y - r.dy;
+    y3 = y2 - r.dy;
     y4 = y3 - r.dy;
     y5 = y4 - r.dy;
-    x3 = x4 = x5 = r.x;
+    x2 = x3 = x4 = x5 = r.x;
   }
   //if r.age == 1, there is no cleanup to do because the rocket hasn't ever been rendered yet
   addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 2
@@ -122,6 +123,12 @@ void explodeRocket(CRGB leds[], Rocket& r) {
       addPixelTween(tweenPixelTo(leds[XY(x5, y5)], BGCOLOUR)); //TODO: Should maybe just set to black, should test this
     }
   }
+}
+
+//Draws an explosion for Rocket r and cleans up the trail of r from the previous frame
+void explodeRocket(CRGB leds[], Rocket& r) {
+  clearRocketTrail(leds, r);
+  explodeAt(r.x, r.y, 1);
 }
 
 void updateRockets(CRGB leds[]) {

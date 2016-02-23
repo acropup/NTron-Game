@@ -1,5 +1,11 @@
 #ifndef XYMATRIX_H
 #define XYMATRIX_H
+
+#if !defined(WIDTH) || !defined(HEIGHT)
+#error Must define matrix WIDTH and HEIGHT
+#endif
+
+#if WIDTH == 32 && HEIGHT == 24
 /*Converts x,y coordinates into an array index
   For the VHS LED Wall, made of 8x8 matrices with LED strips in serpentine pattern
   4 matrices per row, 3 per column
@@ -15,12 +21,19 @@ uint16_t XY( uint8_t x, uint8_t y) {
   
   return i;
 }
-/*
+#else
+#error function XY(x,y) currently only works for 32x24 matrices
+#endif
+
+/*To use XYsafe, define your array with one extra element, such that
+  ar[WIDTH*HEIGHT] is the last, valid element, but is not used for
+  anything besides eating up an otherwise invalid array lookup.
+ */
 uint16_t XYsafe( uint8_t x, uint8_t y) {
-  if(x < 32 || y < 24)
+  if(x < WIDTH && y < HEIGHT)
     return XY(x, y);
   else
-    return -1;
-}*/
+    return WIDTH*HEIGHT;
+}
 
 #endif

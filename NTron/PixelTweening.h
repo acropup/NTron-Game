@@ -13,9 +13,12 @@ typedef struct PixelTween_ {
 PixelTween tweens[MAX_TWEENS];
 int numTweens = 0;
 
+CRGB* TweenIgnoreOOBPixel; //Pointer to out-of-bounds catch-all pixel. No reason to tween it because it's never displayed.
+
 // Adds a PixelTween definition to be tweened over the next frame
 inline void addPixelTween(const PixelTween& pt) {
-  if(numTweens < MAX_TWEENS) {
+  //Add this tween as long as we still have room and the pixel is not out-of-bounds
+  if(numTweens < MAX_TWEENS && pt.pixel != TweenIgnoreOOBPixel) {
     tweens[numTweens++] = pt;
   }
 }

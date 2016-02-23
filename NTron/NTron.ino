@@ -2,17 +2,17 @@
 #include <OctoWS2811.h>
 #include <FastLED.h>
 #include <elapsedMillis.h>
+#include "Constants.h"
 #include "XYmatrix.h"
 #include "PixelTweening.h"
 #include "TronPlayer.h"
 #include "Explosion.h"
 #include "Powerup.h"
 #include "PowerBar.h"
-#include "Constants.h"
 //TODO: In FastLED lib8tion.h, can use beat8() and similar functions for generating waves
 
-
-CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP];
+//The last element is never shown, it's a convenience for out-of-bounds writes to go to (see XYsafe())
+CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP + 1];
 
 static uint8_t P1LPin = 23;
 static uint8_t P1RPin = 22;
@@ -28,6 +28,7 @@ unsigned long msPerFrame = 150;
 
 
 void setup() {
+  TweenIgnoreOOBPixel = &leds[NUM_STRIPS * NUM_LEDS_PER_STRIP]; //Last array element is the out-of-bounds catch-all pixel for XYSafe()
   setScreenDims(WIDTH, HEIGHT);
   initPlayer(0, P1LPin, P1RPin, P1APin, P1BPin, 3, 3);
   initPlayer(1, P2LPin, P2RPin, P2APin, P2BPin, 28, 20);
