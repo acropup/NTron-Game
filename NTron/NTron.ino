@@ -38,6 +38,11 @@ void setup() {
   FastLED.setBrightness(32);
   FastLED.setDither(0); //This prevents FastLED from doing temporal dithering, which creates noticeable flicker
 
+/*
+  for(int j = 0; j < 22; j++) {
+    fireRocket(j+10, 20-j, 0, -1);
+  }*/
+  
   spawnPowerup(leds);
   spawnPowerup(leds);
   spawnPowerup(leds);

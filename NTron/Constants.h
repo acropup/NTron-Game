@@ -13,6 +13,7 @@
 #define WIDTH 32
 #define HEIGHT 24
 
+#define MAX_TWEENS 128 //Maximum number of pixels that can be tweened simultaneously
 #define MAX_POWERUPS 16
 #define POWERUP_HUE_SPEED 30
 

@@ -11,6 +11,13 @@
   4 matrices per row, 3 per column
   LED panels are wired per-row */
 uint16_t XY( uint8_t x, uint8_t y) {
+  /*if(x >= WIDTH || y >= HEIGHT) {
+    Serial.print("(");
+    Serial.print(x);
+    Serial.print(", ");
+    Serial.print(y);
+    Serial.println(")");
+  }*/
   uint16_t i;
   if(x & 0b1) { // If x is odd
     i = x * 8 + 7 - (y & 0b111) + (y>>3)*256;

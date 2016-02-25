@@ -5,6 +5,9 @@
 #include "Button.h"
 #include "Rocket.h"
 
+#define FENCE_COST  2
+#define ROCKET_COST 16
+
 typedef struct Player_ {
   Button  btnL;    //Button that turns player Left (CCW)
   Button  btnR;    //Button that turns player Right (CW)
@@ -62,7 +65,7 @@ void checkButtons(){
  */
 bool isPlayerFencing(Player& p){
   if(p.isFencing && p.power > 1) {
-    p.power-=2;
+    p.power-=FENCE_COST;
     return true;
   }
   return false;
@@ -109,8 +112,8 @@ void updatePlayerPosition(Player& p){
 //Fires a rocket if Player pressed the Fire button this frame
 void maybeFireRocket(Player& p){
   Button &b = p.btnFire;
-  if(b.wasPressed && p.power > 16) {
-    p.power-=16;
+  if(b.wasPressed && p.power > ROCKET_COST) {
+    p.power-=ROCKET_COST;
     fireRocket(p.x, p.y, p.dx, p.dy);
   }
   b.wasPressed = false;

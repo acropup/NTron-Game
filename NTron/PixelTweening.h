@@ -9,7 +9,6 @@ typedef struct PixelTween_ {
   CRGB toColour;    //The colour the tween ends at
 } PixelTween;
 
-#define MAX_TWEENS 128 //Maximum number of pixels that can be tweened simultaneously
 PixelTween tweens[MAX_TWEENS];
 int numTweens = 0;
 

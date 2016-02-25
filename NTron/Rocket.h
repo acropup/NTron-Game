@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "PixelTweening.h"
 #include "Explosion.h"
+#include "Powerup.h"
 
 typedef struct Rocket_ {
   int8_t x;  //Position on screen of the nose of the rocket
@@ -38,24 +39,32 @@ void removeRocket(uint8_t rid) {
   }
 }
 
-//Moves Rocket one frame forward. Rocket moves two pixels per frame.
-//Returns true if collision detected.
-bool stepRocket(CRGB leds[], Rocket& r) {
+/*Moves Rocket one frame forward. Rocket moves two pixels per frame.
+  Returns 0 if no collision,
+          1 if out-of bounds,
+          2 if collision detected.*/
+uint8_t stepRocket(CRGB leds[], Rocket& r) {
+  uint8_t retVal = 2;
   r.age++;
   r.x+=r.dx;
   r.y+=r.dy;
   //Check for collision with first pixel
-  if(leds[XY(r.x, r.y)] == (CRGB)BGCOLOUR) { //Rocket is moving into an empty pixel
+  if(leds[XYsafe(r.x, r.y)] == (CRGB)BGCOLOUR) { //Rocket is moving into an empty pixel
     r.x+=r.dx;
     r.y+=r.dy;
     //Check for collision with second pixel
-    if(leds[XY(r.x, r.y)] == (CRGB)BGCOLOUR) { //Rocket is moving into an empty pixel
+    if(leds[XYsafe(r.x, r.y)] == (CRGB)BGCOLOUR) { //Rocket is moving into an empty pixel
       //Rocket did not collide
-      return false;
+      retVal = 0;
     }
   }
-  //Rocket collided with something at position (r.x, r.y)
-  return true;
+  //If rocket ran out of bounds
+  if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {
+    return 1;
+  }
+  else {  //if retVal == 2, Rocket collided with something at position (r.x, r.y)
+    return retVal;
+  }
 }
 
 void drawRocket(CRGB leds[], Rocket& r) {
@@ -99,21 +108,23 @@ void drawRocket(CRGB leds[], Rocket& r) {
 void clearRocketTrail(CRGB leds[], Rocket& r) {
   //If there's an explosion at (r.x, r.y), it automatically wipes out rocket positions (x1, y1) and (x2, y2).
   //We should keep that in mind and avoid tweening when the tween might overlap with an explosion.
-  int8_t x2, x3, x4, x5;
-  int8_t y2, y3, y4, y5;
+  int8_t x1, x2, x3, x4, x5;
+  int8_t y1, y2, y3, y4, y5;
   if(r.dx) { //Moving along x-axis
-    x2 = r.x - r.dx;
+    x1 = r.x;
+    x2 = x1 - r.dx;
     x3 = x2 - r.dx;
     x4 = x3 - r.dx;
     x5 = x4 - r.dx;
-    y2 = y3 = y4 = y5 = r.y;
+    y1 = y2 = y3 = y4 = y5 = r.y;
   }
   else {     //Moving along y-axis
-    y2 = r.y - r.dy;
+    y1 = r.y;
+    y2 = y1 - r.dy;
     y3 = y2 - r.dy;
     y4 = y3 - r.dy;
     y5 = y4 - r.dy;
-    x2 = x3 = x4 = x5 = r.x;
+    x1 = x2 = x3 = x4 = x5 = r.x;
   }
   //if r.age == 1, there is no cleanup to do because the rocket hasn't ever been rendered yet
   addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 2
@@ -136,17 +147,32 @@ void updateRockets(CRGB leds[]) {
   while(rid > 0){
     Rocket& r = getRocket(--rid);
     //Move the rocket and check for collisions
-    if(stepRocket(leds, r)) {
-      explodeRocket(leds, r);
-      removeRocket(rid);
-      continue;
+    switch(stepRocket(leds, r)) {
+      case 0: //No collision
+        drawRocket(leds, r);
+        break;
+      case 1: //Out-of-bounds
+        clearRocketTrail(leds, r);
+        removeRocket(rid);
+        break;
+      case 2: //Collision
+        if(hitPowerup(r.x, r.y)) {
+          if(r.dx) {
+            fireRocket(r.x-r.dx, r.y-1, r.dx, r.dy);
+            fireRocket(r.x-r.dx, r.y+1, r.dx, r.dy);
+          }
+          else {
+            fireRocket(r.x-1, r.y-r.dy, r.dx, r.dy);
+            fireRocket(r.x+1, r.y-r.dy, r.dx, r.dy);
+          }
+          drawRocket(leds, r);
+        }
+        else {
+          explodeRocket(leds, r);
+          removeRocket(rid);
+        }
+        break;
     }
-    //If rocket runs out of bounds
-    if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {
-      removeRocket(rid);
-      continue; //TODO: Doesn't catch bounds error off the right side of bottom rown. Also, there will still be some rocket trail left over!
-    }
-    drawRocket(leds, r);
   }
   
 }

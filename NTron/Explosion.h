@@ -16,7 +16,7 @@ Explosion explosions[MAX_EXPLOSIONS];
 int numExplosions = 0;
 
 void explodeAt(uint8_t x, uint8_t y, uint8_t size) {
-  if(numExplosions < MAX_EXPLOSIONS) {
+  if(numExplosions < MAX_EXPLOSIONS && x < WIDTH && y < HEIGHT) {
     explosions[numExplosions++] = (Explosion) { x, y, size, 0 };
   }
 }
