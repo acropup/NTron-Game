@@ -10,7 +10,7 @@ Differences are:
 * Both actions use energy, which is generated slowly over time, and quickly if you eat a rainbow-coloured powerup pixel.
 * Power bars for both players are shown along the bottom row of pixels.
 
-Currently a WIP.
+Currently a WIP. Short demo video [here](https://www.youtube.com/watch?v=VNycczbwMuM).
 
 TODO:
 Players never die, so it's not a real game yet.
