@@ -7,9 +7,15 @@
 
 static const uint8_t yBottom = HEIGHT - 1;
 
-uint8_t offset = 0;
+//uint8_t offset = 0;
 uint8_t oldLeft = 0;
 uint8_t oldRight = 0;
+
+//Call when resetting game
+void clearPowerBars() {
+  oldLeft = 0;
+  oldRight = 0;
+}
 
 inline CRGB CRGBgrayscale(uint8_t lightness) {
   return CRGB(lightness, lightness, lightness);

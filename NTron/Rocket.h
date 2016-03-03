@@ -18,6 +18,11 @@ typedef struct Rocket_ {
 Rocket rockets[MAX_ROCKETS];
 int numRockets = 0;
 
+//Call when resetting game
+void clearRockets() {
+  numRockets = 0;
+}
+
 //Fires a rocket from position (fromx, fromy) in the direction (dx, dy).
 //dx or dy must be 0, the other must be ±1.
 void fireRocket(int8_t fromx, int8_t fromy, int8_t dx, int8_t dy) {
@@ -142,6 +147,7 @@ void explodeRocket(CRGB leds[], Rocket& r) {
   explodeAt(r.x, r.y, 1);
 }
 
+//Move all rockets and check for collisions
 void updateRockets(CRGB leds[]) {
   uint8_t rid = numRockets;
   while(rid > 0){
@@ -156,7 +162,7 @@ void updateRockets(CRGB leds[]) {
         removeRocket(rid);
         break;
       case 2: //Collision
-        if(hitPowerup(r.x, r.y)) {
+        if(hitPowerup(r.x, r.y)) { //If Rocket hits Powerup, it turns into a triple-rocket!
           if(r.dx) {
             fireRocket(r.x-r.dx, r.y-1, r.dx, r.dy);
             fireRocket(r.x-r.dx, r.y+1, r.dx, r.dy);

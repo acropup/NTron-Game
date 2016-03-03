@@ -12,6 +12,11 @@ typedef struct PixelTween_ {
 PixelTween tweens[MAX_TWEENS];
 int numTweens = 0;
 
+//Call when resetting game
+void clearPixelTweens() {
+  numTweens = 0;
+}
+
 CRGB* TweenIgnoreOOBPixel; //Pointer to out-of-bounds catch-all pixel. No reason to tween it because it's never displayed.
 
 // Adds a PixelTween definition to be tweened over the next frame
@@ -50,7 +55,8 @@ void finalizeTweens() {
   }
 }
 
-  //in some function
+// Example usage:
 // addPixelTween(tweenPixelTo(leds[2], CRGB::Red));
+// addPixelTween({ &leds[2], CRGB::White, CRGB::Yellow });
 
 #endif
