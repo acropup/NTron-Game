@@ -35,6 +35,14 @@ void resetGame() {
   clearRockets();
   resetPlayer(getPlayer(0),  3,  3,  1, 0);
   resetPlayer(getPlayer(1), 28, 20, -1, 0);
+  
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
+  spawnPowerup(leds);
 }
 
 void setup() {
@@ -53,14 +61,6 @@ void setup() {
   for(int j = 0; j < 22; j++) {
     fireRocket(j+10, 20-j, 0, -1);
   }*/
-  
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
   for(int j = 0; j < 20; j++) {
     leds[XY(30,j)] = FENCECOLOUR;
   }
@@ -87,6 +87,7 @@ void processFrame() {
       spawnPowerup(leds);
     }
     else {
+      p.isAlive = false;
       explodeAt(p.x, p.y, 1);
       delay(1000);
       resetGame();
