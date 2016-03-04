@@ -163,6 +163,8 @@ void updateRockets(CRGB leds[]) {
         break;
       case 2: //Collision
         if(hitPowerup(r.x, r.y)) { //If Rocket hits Powerup, it turns into a triple-rocket!
+          clearRocketTrail(leds, r); //Workaround
+          r.age--; //Workaround because rocket might or might not have travelled 2 steps this frame
           if(r.dx) {
             fireRocket(r.x-r.dx, r.y-1, r.dx, r.dy);
             fireRocket(r.x-r.dx, r.y+1, r.dx, r.dy);

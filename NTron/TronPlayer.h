@@ -99,7 +99,7 @@ void maybeFireRocket(Player& p){
 inline void layAllFences(CRGB leds[]) {
   uint8_t pid = NUMPLAYERS;
   while(pid > 0){
-    maybeLayFence(leds, getPlayer(pid));
+    maybeLayFence(leds, getPlayer(--pid));
   }
 }
 

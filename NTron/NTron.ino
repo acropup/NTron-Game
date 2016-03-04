@@ -20,14 +20,16 @@ static uint8_t P2LPin = 19;
 static uint8_t P2RPin = 18;
 static uint8_t P1APin = 0;
 static uint8_t P1BPin = 1;
-static uint8_t P2APin = -1;
-static uint8_t P2BPin = -1;
+static uint8_t P2APin = 0; //Make -1 to disable
+static uint8_t P2BPin = 1;
 
 elapsedMillis timeElapsed;
 unsigned long msPerFrame = 150;
 
+int xtest = 12;
 void resetGame() {
   timeElapsed = 0;
+  memset(leds, 0, WIDTH*HEIGHT*sizeof(CRGB));
   clearExplosions();
   clearPixelTweens();
   clearPowerBars();
@@ -43,14 +45,19 @@ void resetGame() {
   spawnPowerup(leds);
   spawnPowerup(leds);
   spawnPowerup(leds);
+  //fireRocket(4, 3, 1, 0);
+  //fireRocket(xtest++, 11, 0, -1);
+  //leds[XY(xtest--, 3)] = (CRGB)FENCECOLOUR;
+  //leds[XY(14, 3)] = (CRGB)FENCECOLOUR;
 }
 
 void setup() {
   randomSeed(analogRead(17)); //Reading a floating pin for a random seed
   
   TweenIgnoreOOBPixel = &leds[NUM_STRIPS * NUM_LEDS_PER_STRIP]; //Last array element is the out-of-bounds catch-all pixel for XYSafe()
-  resetPlayer(initPlayer(0, P1LPin, P1RPin, P1APin, P1BPin), 3, 3, 1, 0);
-  resetPlayer(initPlayer(1, P2LPin, P2RPin, P2APin, P2BPin), 28, 20, -1, 0);
+  initPlayer(0, P1LPin, P1RPin, P1APin, P1BPin);
+  initPlayer(1, P2LPin, P2RPin, P2APin, P2BPin);
+  resetGame();
   // Pin layouts on the teensy 3:
   // OctoWS2811: 2,14,7,8,6,20,21,5
   FastLED.addLeds<OCTOWS2811,RGB>(leds, NUM_LEDS_PER_STRIP);
@@ -89,9 +96,11 @@ void processFrame() {
     else {
       p.isAlive = false;
       explodeAt(p.x, p.y, 1);
-      delay(1000);
-      resetGame();
-      return;
+      if(pid == 0) {
+        delay(1000);
+        resetGame();
+        return;
+      }
     }
   }
   drawPowerups(leds);
