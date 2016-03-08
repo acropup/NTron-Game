@@ -44,32 +44,44 @@ void removeRocket(uint8_t rid) {
   }
 }
 
-/*Moves Rocket one frame forward. Rocket moves two pixels per frame.
-  Returns 0 if no collision,
-          1 if out-of bounds,
-          2 if collision detected.*/
-uint8_t stepRocket(CRGB leds[], Rocket& r) {
-  uint8_t retVal = 2;
-  r.age++;
+//Returns true if rocket ran out of bounds
+inline bool isRocketOOB(Rocket& r) {
+  return r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2;
+}
+
+inline void halfStepRocket(Rocket& r) {
   r.x+=r.dx;
   r.y+=r.dy;
-  //Check for collision with first pixel
-  if(leds[XYsafe(r.x, r.y)] == (CRGB)BGCOLOUR) { //Rocket is moving into an empty pixel
+}
+
+/*Moves Rocket one frame forward. Rocket moves numSteps pixels per frame.
+  Returns 0 if no collision,
+         -1 if out-of bounds,
+          n if collision detected on the nth pixel. */
+int8_t stepRocket(CRGB leds[], Rocket& r, uint8_t numSteps) {
+  r.age++;
+  int8_t stepNum;
+  for(stepNum = 1; stepNum <= numSteps; stepNum++) {
     r.x+=r.dx;
     r.y+=r.dy;
-    //Check for collision with second pixel
-    if(leds[XYsafe(r.x, r.y)] == (CRGB)BGCOLOUR) { //Rocket is moving into an empty pixel
-      //Rocket did not collide
-      retVal = 0;
+    //Check for collision with next pixel
+    if(leds[XYsafe(r.x, r.y)] != (CRGB)BGCOLOUR) {
+      //Rocket is moving into an occupied pixel (collision!)
+      break;
     }
   }
-  //If rocket ran out of bounds
-  if(r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT-2) {
-    return 1;
+  if(stepNum > numSteps) {
+    return isRocketOOB(r) ? -1 : 0;
   }
-  else {  //if retVal == 2, Rocket collided with something at position (r.x, r.y)
-    return retVal;
-  }
+  return stepNum;
+}
+
+/*Moves Rocket one frame forward. Rocket moves two pixels per frame.
+  Returns 0 if no collision,
+         -1 if out-of bounds,
+          n if collision detected on the nth pixel. */
+inline int8_t stepRocket(CRGB leds[], Rocket& r) {
+  return stepRocket(leds, r, 2);
 }
 
 void drawRocket(CRGB leds[], Rocket& r) {
@@ -132,11 +144,13 @@ void clearRocketTrail(CRGB leds[], Rocket& r) {
     x1 = x2 = x3 = x4 = x5 = r.x;
   }
   //if r.age == 1, there is no cleanup to do because the rocket hasn't ever been rendered yet
-  addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 2
-  if(r.age > 2) {
-    addPixelTween(tweenPixelTo(leds[XY(x4, y4)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 3
-    if(r.age > 3) {
-      addPixelTween(tweenPixelTo(leds[XY(x5, y5)], BGCOLOUR)); //TODO: Should maybe just set to black, should test this
+  if(r.age > 1) {
+    addPixelTween(tweenPixelTo(leds[XY(x3, y3)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 2
+    if(r.age > 2) {
+      addPixelTween(tweenPixelTo(leds[XY(x4, y4)], BGCOLOUR)); //TODO: Should maybe just set to black if r.age == 3
+      if(r.age > 3) {
+        addPixelTween(tweenPixelTo(leds[XY(x5, y5)], BGCOLOUR)); //TODO: Should maybe just set to black, should test this
+      }
     }
   }
 }
@@ -147,42 +161,63 @@ void explodeRocket(CRGB leds[], Rocket& r) {
   explodeAt(r.x, r.y, 1);
 }
 
+/*Turns Rocket r into a triple-rocket!            --->
+  If Rocket collides with Powerup, we do this.     --->
+  Formation is like the diagram on the right      --->   */
+void tripleRocket(Rocket& r) {
+  if(r.dx) {
+    fireRocket(r.x-r.dx, r.y-1, r.dx, r.dy);
+    fireRocket(r.x-r.dx, r.y+1, r.dx, r.dy);
+  }
+  else {
+    fireRocket(r.x-1, r.y-r.dy, r.dx, r.dy);
+    fireRocket(r.x+1, r.y-r.dy, r.dx, r.dy);
+  }
+}
+
 //Move all rockets and check for collisions
 void updateRockets(CRGB leds[]) {
   uint8_t rid = numRockets;
   while(rid > 0){
     Rocket& r = getRocket(--rid);
     //Move the rocket and check for collisions
-    switch(stepRocket(leds, r)) {
-      case 0: //No collision
-        drawRocket(leds, r);
-        break;
-      case 1: //Out-of-bounds
+    int8_t collisionState = stepRocket(leds, r);
+    if(collisionState > 0) { //Collision
+      //If Rocket hits Powerup, it turns into a triple-rocket!
+      if(hitPowerup(r.x, r.y)) {
+        //Collision with Powerup on 1st pixel step
+        if(collisionState == 1) {
+          //Step one more pixel
+          r.age--; //Decrement because stepRocket auto-increments
+          collisionState = stepRocket(leds, r, 1);
+          //Check if rocket hits a Powerup on both pixels
+          if(collisionState > 0 && hitPowerup(r.x, r.y)) {
+            collisionState = 0; //Do not explode upon hitting powerup
+          }
+          else if(collisionState == -1) { //Out-of-bounds
+            //Clear the Powerup pixel
+            addPixelTween(tweenPixelTo(leds[XY(r.x-r.dx, r.y-r.dy)], (CRGB)BGCOLOUR));
+          }
+        }
+        else { //Collision with Powerup on 2nd pixel step
+          collisionState = 0; //Do not explode upon hitting powerup
+        }
+        tripleRocket(r);
+      }
+    }
+    if(collisionState == 0) {  //No collision
+      drawRocket(leds, r);
+    }
+    else {
+      if(collisionState > 0) { //Collision
+        explodeRocket(leds, r);
+      }
+      else {                   //Out-of-bounds (collisionState == -1)
         clearRocketTrail(leds, r);
-        removeRocket(rid);
-        break;
-      case 2: //Collision
-        if(hitPowerup(r.x, r.y)) { //If Rocket hits Powerup, it turns into a triple-rocket!
-          clearRocketTrail(leds, r); //Workaround
-          r.age--; //Workaround because rocket might or might not have travelled 2 steps this frame
-          if(r.dx) {
-            fireRocket(r.x-r.dx, r.y-1, r.dx, r.dy);
-            fireRocket(r.x-r.dx, r.y+1, r.dx, r.dy);
-          }
-          else {
-            fireRocket(r.x-1, r.y-r.dy, r.dx, r.dy);
-            fireRocket(r.x+1, r.y-r.dy, r.dx, r.dy);
-          }
-          drawRocket(leds, r);
-        }
-        else {
-          explodeRocket(leds, r);
-          removeRocket(rid);
-        }
-        break;
+      }
+      removeRocket(rid);
     }
   }
-  
 }
 
 #endif

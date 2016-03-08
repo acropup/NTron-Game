@@ -33,6 +33,16 @@ void spawnPowerup(CRGB* leds) {
   powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
 }
 
+//TODO: This is a test function to spawn powerups at specific positions
+void spawnPowerup(CRGB* leds, uint8_t x, uint8_t y) {
+  if(numPowerups >= MAX_POWERUPS) return;
+  if (leds[XY(x, y)] != (CRGB)BGCOLOUR) {
+    return;
+  }
+  
+  powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
+}
+
 void drawPowerups(CRGB* leds) {
   for (int i = 0; i < numPowerups; i++) {
     powerups[i].hue += POWERUP_HUE_SPEED;
