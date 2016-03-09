@@ -131,14 +131,22 @@ void updatePlayerDirection(Player& p){
   bR.wasPressed = false;
 }
 
-void updatePlayerPosition(Player& p){
-  p.x += p.dx;
-  p.y += p.dy;
+/* Moves position (x,y) by amount (dx,dy),
+   and wraps around WIDTH,HEIGHT dimensions automatically. */
+inline void moveAndWrap(int8_t& x, int8_t& y, int8_t dx, int8_t dy) {
+  x += dx;
+  y += dy;
   //Bounds check and wrap around the screen
-  if(p.x == -1)   p.x = WIDTH-1;
-  if(p.y == -1)   p.y = HEIGHT-3;
-  if(p.x == WIDTH) p.x = 0;
-  if(p.y == HEIGHT-2) p.y = 0;
+  if(x == -1)   x = WIDTH-1;
+  if(y == -1)   y = HEIGHT-3;
+  if(x == WIDTH) x = 0;
+  if(y == HEIGHT-2) y = 0;
+  
+}
+
+/* Updates player position by moving player in direction dx or dy. */
+void updatePlayerPosition(Player& p){
+  moveAndWrap(p.x, p.y, p.dx, p.dy);
 }
 
 void moveRandom(uint8_t pid) {
@@ -185,6 +193,25 @@ void applyPowerup(Player& p) {
   p.power+=16;
   //Check for overflow
   if(p.power < 16) p.power = 255;
+}
+
+/*To be called after the players are moved. Checks for player-to-player collisions,
+  returns true if collided, in which case both players should die. */
+bool checkPlayerCollision() {
+  Player& p1 = getPlayer(0);
+  Player& p2 = getPlayer(1);
+  if(p1.x == p2.x && p1.y == p2.y){
+    return true;
+  }
+  if(p1.dx == -p2.dx && p1.dy == -p2.dy) { //Players are moving in opposite directions
+    int8_t x1 = p1.x;
+    int8_t y1 = p1.y;
+    moveAndWrap(x1, y1, -p1.dx, -p1.dy);
+    if(x1 == p2.x && y1 == p2.y) {
+      return true;
+    }
+  }
+  return false;
 }
 
 #endif

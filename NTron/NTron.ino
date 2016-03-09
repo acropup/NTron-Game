@@ -86,7 +86,11 @@ void processFrame() {
   updatePlayers(leds);
   //Move rockets and check for collisions
   updateRockets(leds);
-  
+
+  //Check inter-player collision
+  if(checkPlayerCollision()){
+    Serial.println("Players collided!");
+  }
   //Check for collisions
   for(int pid = 0; pid < NUMPLAYERS; pid++) {
     Player& p = getPlayer(pid);
