@@ -47,7 +47,6 @@ void drawExplosion(CRGB leds[], uint8_t eid) {
       switch(e.age) {
         case 0:
         {
-          
           //       *
           //     * * *
           //       *
@@ -68,6 +67,29 @@ void drawExplosion(CRGB leds[], uint8_t eid) {
         default:
           removeExplosion(eid);
       }
+      break;
+    }
+    case 2:
+    {
+      switch(e.age) {
+        case 0:
+        {
+          if(x > 0) explodeAt(x-2,y,1); //Left
+          if(x < 31)explodeAt(x+2,y,1); //Right
+          if(y > 0) explodeAt(x,y-2,1); //Up
+          if(y < 23)explodeAt(x,y+2,1); //Down
+          break;
+        }
+        case 1:
+        {
+          if(x > 0) explodeAt(x-2,y-1,1); //Left
+          if(x < 31)explodeAt(x+2,y+1,1); //Right
+          if(y > 0) explodeAt(x+1,y-2,1); //Up
+          if(y < 23)explodeAt(x-1,y+2,1); //Down
+          removeExplosion(eid);
+        }
+      }
+      e.age++;
       break;
     }
     default:

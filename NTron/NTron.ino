@@ -89,6 +89,8 @@ void processFrame() {
 
   //Check inter-player collision
   if(checkPlayerCollision()){
+    Player& p = getPlayer(0);
+    explodeAt(p.x, p.y, 2);
     Serial.println("Players collided!");
   }
   //Check for collisions
@@ -108,10 +110,13 @@ void processFrame() {
     else {
       p.isAlive = false;
       explodeAt(p.x, p.y, 1);
+      Serial.print("Player ");
+      Serial.print(pid+1);
+      Serial.println(" collided!");
       if(pid == 0) {
-        delay(1000);
-        resetGame();
-        return;
+        //delay(1000);
+        //resetGame();
+        //return;
       }
     }
   }
