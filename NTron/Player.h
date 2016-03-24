@@ -178,9 +178,6 @@ void updatePlayers(CRGB leds[]){
     p.power += regenAmt;
     //Check for overflow
     if(p.power < regenAmt) p.power = 255;
-
-    //If the fencing button is being held down, it will be set true again before the next frame
-    p.isFencing = false;
   }
 }
 
