@@ -1,5 +1,5 @@
-#ifndef TRONPLAYER_H
-#define TRONPLAYER_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include "Constants.h"
 #include "Button.h"

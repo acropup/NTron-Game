@@ -5,7 +5,7 @@
 #include "Constants.h"
 #include "XYmatrix.h"
 #include "PixelTweening.h"
-#include "TronPlayer.h"
+#include "Player.h"
 #include "Explosion.h"
 #include "Powerup.h"
 #include "PowerBar.h"
