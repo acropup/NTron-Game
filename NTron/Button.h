@@ -16,6 +16,11 @@ Button CreateButton(uint8_t pin) {
   return btn;
 }
 
+/* Called to check each button as often as possible,
+   so as to not miss any short button presses. On
+   a Button Down Event, sets btn.wasPressed to true.
+   It is up to external code to set it back to false,
+   after it has been read and handled. */
 void Update(Button &btn) {
   //Ignore any state change within the debounce time window
   if(millis() - btn.stateChangeTime > DEBOUNCE_MS) {
