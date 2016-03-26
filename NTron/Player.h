@@ -61,13 +61,14 @@ void checkButtons(){
   and if they have enough power to lay a fence.
   If so, consumes power and returns true. */
 bool isPlayerFencing(Player& p){
+  bool isFencing = false;
   Button &b = p.btnFence;
   if(b.wasPressed && p.power >= FENCE_COST) {
     p.power-=FENCE_COST;
-    b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
-    return true;
+    isFencing = true;
   }
-  return false;
+  b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
+  return isFencing;
 }
 
 /*Lays a fence if Player is holding down the isFencing button, 
