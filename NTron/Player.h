@@ -56,7 +56,7 @@ bool isPlayerFencing(Player& p){
     //TODO: see if it's ok to remove this. b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
     return true;
   }
-  //TODO: Probably need to clear wasPressed here as well, in case power was too low to fence.
+  b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
   return false;
 }
 
