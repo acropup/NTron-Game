@@ -39,24 +39,14 @@ inline Player& getPlayer(uint8_t pid){
   return players[pid];
 }
 
-//Should check buttons as often as possible, not just every frame
-void checkButtons(){
-  uint8_t pid = NUMPLAYERS;
-  while(pid > 0){
-    checkButtons(getPlayer(--pid));
-  }
-}
-
 /*Checks if player has pressed the isFencing button,
   and if they have enough power to lay a fence.
   If so, consumes power and returns true. */
 bool isPlayerFencing(Player& p){
-  if((p.btnState.WasFence || p.btnState.Fence) && p.power >= FENCE_COST) {
+  if(p.btnState.Fence && p.power >= FENCE_COST) {
     p.power-=FENCE_COST;
-    //TODO: see if it's ok to remove this. b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
     return true;
   }
-  b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
   return false;
 }
 
@@ -73,11 +63,10 @@ void maybeLayFence(CRGB leds[], Player& p) {
 
 //Fires a rocket if Player pressed the Fire button this frame
 void maybeFireRocket(Player& p){
-  if(p.btnState.WasRocket && p.power > ROCKET_COST) {
+  if(p.btnState.Rocket && p.power > ROCKET_COST) {
     p.power-=ROCKET_COST;
     fireRocket(p.x, p.y, p.dx, p.dy);
   }
-  //TODO: Check, this should be unnecessary. b.wasPressed = false;
 }
 
 //Draws a fence behind every player that is laying fences this frame
@@ -89,9 +78,10 @@ inline void layAllFences(CRGB leds[]) {
 }
 
 void updatePlayerDirection(Player& p){
-  bool bL = p.btnState.wasLeft;
-  bool bR = p.btnState.wasRight;
-  if(bL && (!bR || bL.stateChangeTime < bR.stateChangeTime)) { //TODO: this won't compile, will move this logic to button controller
+  //Only one of these should ever be true
+  bool bL = p.btnState.Left;
+  bool bR = p.btnState.Right;
+  if(bL)
     //Turn left
     if(p.dx) {
       p.dy = p.dx;
