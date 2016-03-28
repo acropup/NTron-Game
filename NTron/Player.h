@@ -81,7 +81,7 @@ void updatePlayerDirection(Player& p){
   //Only one of these should ever be true
   bool bL = p.btnState.Left;
   bool bR = p.btnState.Right;
-  if(bL)
+  if(bL) {
     //Turn left
     if(p.dx) {
       p.dy = p.dx;

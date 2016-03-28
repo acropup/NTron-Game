@@ -1,32 +1,24 @@
 #ifndef SERIALGAMECONTROLLERCLIENT_H
 #define SERIALGAMECONTROLLERCLIENT_H
 
-typedef struct PlayerButtonState_ {
-  bool Left      : 1;
-  bool Right     : 1;
-  bool Fence     : 1;
-  bool Rocket    : 1;
-} PlayerButtonState;
+union PlayerButtonState {
+  struct {
+    bool Left   : 1;
+    bool Right  : 1;
+    bool Fence  : 1;
+    bool Rocket : 1;
+  };
+  uint8_t raw;
+};
 
-struct {
-  PlayerButtonState p1 : 4;
-  PlayerButtonState p1 : 4;
-/*bool p1Left   : 1;
-  bool p1Right  : 1;
-  bool p1Fence  : 1;
-  bool p1Rocket : 1;
-  bool p2Left   : 1;
-  bool p2Right  : 1;
-  bool p2Fence  : 1;
-  bool p2Rocket : 1;*/
-} btnPressed;
+uint8_t btnPressed;
 
 void askForButtonStatus() {
   Serial.write('?');
 }
 
 bool checkForButtonStatus() {
-  if(Serial.available() > 1) {
+  if (Serial.available() > 1) {
     btnPressed = Serial.read();
     return true;
   }
@@ -34,10 +26,8 @@ bool checkForButtonStatus() {
 }
 
 void setPlayerButtonState(PlayerButtonState& p1State, PlayerButtonState& p2State) {
-/*p1State = (btnPressed >> 4);
-  p2State = (btnPressed & 0x0F);*/
-  p1State = btnPressed.p1;
-  p2State = btnPressed.p2;
+  p1State.raw = (btnPressed >> 4);
+  p2State.raw = (btnPressed & 0x0F);
 }
 
 #endif
