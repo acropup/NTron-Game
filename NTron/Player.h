@@ -2,14 +2,11 @@
 #define PLAYER_H
 
 #include "Constants.h"
-#include "Button.h"
+#include "SerialGameControllerClient.h"
 #include "Rocket.h"
 
 typedef struct Player_ {
-  Button  btnL;    //Button that turns player Left (CCW)
-  Button  btnR;    //Button that turns player Right (CW)
-  Button  btnFire; //Button that fires rockets
-  Button  btnFence;//Button that leaves fences behind player
+  PlayerButtonState btnState; //State of all player buttons, from SerialGameControllerClient.h
   bool isAlive;    //Player is still alive
   int8_t x;  //Position on screen
   int8_t y;
@@ -33,20 +30,13 @@ void resetPlayer(Player& p, int8_t posX, int8_t posY, int8_t dx, int8_t dy){
   p.dy = dy;
 }
 
-Player& initPlayer(uint8_t pid, uint8_t leftPin, uint8_t rightPin, uint8_t fencePin, uint8_t firePin) {
-  players[pid] = { CreateButton(leftPin), CreateButton(rightPin), CreateButton(firePin), CreateButton(fencePin), true, 0, 0, 1, 0, 0 };
+Player& initPlayer(uint8_t pid) {
+  players[pid] = { 0, true, 0, 0, 1, 0, 0 };
   return players[pid];
 }
 
 inline Player& getPlayer(uint8_t pid){
   return players[pid];
-}
-
-void checkButtons(Player& p){
-  Update(p.btnFence);
-  Update(p.btnFire);
-  Update(p.btnL);
-  Update(p.btnR);
 }
 
 //Should check buttons as often as possible, not just every frame
@@ -61,10 +51,9 @@ void checkButtons(){
   and if they have enough power to lay a fence.
   If so, consumes power and returns true. */
 bool isPlayerFencing(Player& p){
-  Button &b = p.btnFence;
-  if(b.wasPressed && p.power >= FENCE_COST) {
+  if((p.btnState.WasFence || p.btnState.Fence) && p.power >= FENCE_COST) {
     p.power-=FENCE_COST;
-    b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
+    //TODO: see if it's ok to remove this. b.wasPressed = (b.isPressed == LOW); //Clear wasPressed only if button has been released
     return true;
   }
   //TODO: Probably need to clear wasPressed here as well, in case power was too low to fence.
@@ -84,12 +73,11 @@ void maybeLayFence(CRGB leds[], Player& p) {
 
 //Fires a rocket if Player pressed the Fire button this frame
 void maybeFireRocket(Player& p){
-  Button &b = p.btnFire;
-  if(b.wasPressed && p.power > ROCKET_COST) {
+  if(p.btnState.WasRocket && p.power > ROCKET_COST) {
     p.power-=ROCKET_COST;
     fireRocket(p.x, p.y, p.dx, p.dy);
   }
-  b.wasPressed = false;
+  //TODO: Check, this should be unnecessary. b.wasPressed = false;
 }
 
 //Draws a fence behind every player that is laying fences this frame
@@ -101,9 +89,9 @@ inline void layAllFences(CRGB leds[]) {
 }
 
 void updatePlayerDirection(Player& p){
-  Button &bL = p.btnL;
-  Button &bR = p.btnR;
-  if(bL.wasPressed && (!bR.wasPressed || bL.stateChangeTime < bR.stateChangeTime)) {
+  bool bL = p.btnState.wasLeft;
+  bool bR = p.btnState.wasRight;
+  if(bL && (!bR || bL.stateChangeTime < bR.stateChangeTime)) { //TODO: this won't compile, will move this logic to button controller
     //Turn left
     if(p.dx) {
       p.dy = p.dx;
@@ -113,7 +101,7 @@ void updatePlayerDirection(Player& p){
       p.dx = -p.dy;
       p.dy = 0;
     }
-  } else if(bR.wasPressed) {
+  } else if(bR) {
     //Turn right
     if(p.dx) {
       p.dy = -p.dx;
@@ -124,8 +112,6 @@ void updatePlayerDirection(Player& p){
       p.dy = 0;
     }
   }
-  bL.wasPressed = false;
-  bR.wasPressed = false;
 }
 
 /* Moves position (x,y) by amount (dx,dy),
@@ -134,9 +120,9 @@ inline void moveAndWrap(int8_t& x, int8_t& y, int8_t dx, int8_t dy) {
   x += dx;
   y += dy;
   //Bounds check and wrap around the screen
-  if(x == -1)   x = WIDTH-1;
-  if(y == -1)   y = HEIGHT-3;
-  if(x == WIDTH) x = 0;
+  if(x == -1)       x = WIDTH-1;
+  if(y == -1)       y = HEIGHT-3;
+  if(x == WIDTH)    x = 0;
   if(y == HEIGHT-2) y = 0;
 }
 

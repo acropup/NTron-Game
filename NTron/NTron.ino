@@ -14,19 +14,10 @@
 //The last element is never shown, it's a convenience for out-of-bounds writes to go to (see XYsafe())
 CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP + 1];
 
-static uint8_t P1LPin = 23;
-static uint8_t P1RPin = 22;
-static uint8_t P2LPin = 19;
-static uint8_t P2RPin = 18;
-static uint8_t P1APin = 0;
-static uint8_t P1BPin = 1;
-static uint8_t P2APin = 0; //Make -1 to disable
-static uint8_t P2BPin = 1;
-
 elapsedMillis timeElapsed;
 unsigned long msPerFrame = 150;
 
-int xtest = 12;
+//int xtest = 12;
 void resetGame() {
   timeElapsed = 0;
   memset(leds, 0, WIDTH*HEIGHT*sizeof(CRGB));
@@ -63,8 +54,8 @@ void setup() {
   randomSeed(analogRead(17)); //Reading a floating pin for a random seed
   
   TweenIgnoreOOBPixel = &leds[NUM_STRIPS * NUM_LEDS_PER_STRIP]; //Last array element is the out-of-bounds catch-all pixel for XYSafe()
-  initPlayer(0, P1LPin, P1RPin, P1APin, P1BPin);
-  initPlayer(1, P2LPin, P2RPin, P2APin, P2BPin);
+  initPlayer(0);
+  initPlayer(1);
   resetGame();
   // Pin layouts on the teensy 3:
   // OctoWS2811: 2,14,7,8,6,20,21,5
@@ -127,13 +118,17 @@ void processFrame() {
 }
 
 void loop() {
-  //Check for user input
-  checkButtons();
-  
   if (timeElapsed >= msPerFrame) { //Time for a new frame
     timeElapsed -= msPerFrame;
+    //TODO: Might want to ask for button status some ms before the end of the frame. Measure this!
+    askForButtonStatus();
     //Finish up the last frame
     finalizeTweens();
+
+    //TODO: Should have a timeout or retry
+    while(!checkForButtonStatus()) {}
+    //Take all new button states and apply to each player
+    setPlayerButtonState(getPlayer(0).btnState, getPlayer(1).btnState);
 
     processFrame();
   }
