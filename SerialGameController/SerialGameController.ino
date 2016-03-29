@@ -1,6 +1,6 @@
 #include "Button.h"
 
-#define NUM_BUTTONS 8 //Any more than 8 and we'll have to change code to transfer state in more than one byte
+#define NUM_BUTTONS 8
 //Offset for each player in the button array
 #define P1 4
 #define P2 0
@@ -21,10 +21,9 @@ void setup() {
   buttons[2] = CreateButton(7); //P2 Right
   buttons[1] = CreateButton(8); //P2 Fence
   buttons[0] = CreateButton(9); //P2 Rocket
-  //The byte of button info sent by Serial is mapped like 76543210
+  //The byte of button info sent by Serial is mapped according to array index, like 76543210
 
   Serial.begin(9600);
-
 }
 
 /* Returns the button state for player P1 or P2 (see #defines)
@@ -61,9 +60,27 @@ uint8_t getButtonStateForPlayer(int playerOffset) {
     result |= _BV(B_ROCKET);
     bRocket.wasPressed = false;
   }
-  result = result << playerOffset;
   return result;
 }
+
+void pollButtonStates() {
+  uint8_t id = NUM_BUTTONS;
+  while (id--) {
+    Update(buttons[id]);
+  }
+}
+
+void loop() {
+  pollButtonStates();
+  if (Serial.available()) {
+    //Empty the Serial input buffer (we treat any character as a query)
+    while (Serial.read() != -1) {}
+    //Send Button state for both players
+    uint8_t state = (getButtonStateForPlayer(P1) << P1) | (getButtonStateForPlayer(P2) << P2);
+    Serial.write(state);
+  }
+}
+
 
 /*
 void clearWasPressed() {
@@ -73,12 +90,9 @@ void clearWasPressed() {
   }
 }
 
-void pollButtonStates() {
-  uint8_t id = NUM_BUTTONS;
-  while (id--) {
-    Update(buttons[id]);
-  }
-}
+#if NUM_BUTTONS > 8
+#error This code does not support NUM_BUTTONS > 8
+#endif
 
 // Returns a byte containing the isPressed state of
 // all NUM_BUTTONS (<= 8) buttons, where the nth
@@ -108,14 +122,3 @@ uint8_t getButtonWasPressedState() {
   return allStates;
 }
 */
-
-void loop() {
-  pollButtonStates();
-  if (Serial.available()) {
-    //Empty the Serial input buffer (we respond the same way to any character)
-    while (Serial.read() != -1) {}
-    //Send Button state for both players
-    uint8_t state = getButtonStateForPlayer(P1) | getButtonStateForPlayer(P2);
-    Serial.write(state);
-  }
-}
