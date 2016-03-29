@@ -73,11 +73,11 @@ void pollButtonStates() {
 void loop() {
   pollButtonStates();
   if (Serial.available()) {
-    //Empty the Serial input buffer (we treat any character as a query)
-    while (Serial.read() != -1) {}
     //Send Button state for both players
     uint8_t state = (getButtonStateForPlayer(P1) << P1) | (getButtonStateForPlayer(P2) << P2);
     Serial.write(state);
+    //Empty the Serial input buffer (we treat any character as a query)
+    while (Serial.read() != -1) {}
   }
 }
 
