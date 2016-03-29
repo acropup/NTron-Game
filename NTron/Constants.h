@@ -26,6 +26,4 @@
 #define POWERUP_VALUE    16
 #define POWER_REGEN_RATE 50 //Percent of a power point regenerated per frame
 
-#define DEBOUNCE_MS 40
-
 #endif

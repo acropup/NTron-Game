@@ -2,26 +2,27 @@
 
 #define NUM_BUTTONS 8 //Any more than 8 and we'll have to change code to transfer state in more than one byte
 //Offset for each player in the button array
-#define P1 0
-#define P2 4
+#define P1 4
+#define P2 0
 //Offset for each button in the button array
-#define B_LEFT   0
-#define B_RIGHT  1
-#define B_FENCE  2
-#define B_ROCKET 3
+#define B_LEFT   3
+#define B_RIGHT  2
+#define B_FENCE  1
+#define B_ROCKET 0
 Button buttons[NUM_BUTTONS];
 
 void setup() {
   //Assign Pin numbers for buttons
-  buttons[0] = CreateButton(2); //P1 Left
-  buttons[1] = CreateButton(2); //P1 Right
-  buttons[2] = CreateButton(2); //P1 Fence
-  buttons[3] = CreateButton(2); //P1 Rocket
-  buttons[4] = CreateButton(2); //P2 Left
-  buttons[5] = CreateButton(2); //P2 Right
-  buttons[6] = CreateButton(2); //P2 Fence
-  buttons[7] = CreateButton(2); //P2 Rocket
-  
+  buttons[7] = CreateButton(0); //P1 Left
+  buttons[6] = CreateButton(1); //P1 Right
+  buttons[5] = CreateButton(2); //P1 Fence
+  buttons[4] = CreateButton(3); //P1 Rocket
+  buttons[3] = CreateButton(6); //P2 Left
+  buttons[2] = CreateButton(7); //P2 Right
+  buttons[1] = CreateButton(8); //P2 Fence
+  buttons[0] = CreateButton(9); //P2 Rocket
+  //The byte of button info sent by Serial is mapped like 76543210
+
   Serial.begin(9600);
 
 }
@@ -37,52 +38,55 @@ void setup() {
    with their intended behaviour. */
 uint8_t getButtonStateForPlayer(int playerOffset) {
   uint8_t result = 0;
-  Button& bL      = buttons[playerOffset+B_LEFT];
-  Button& bR      = buttons[playerOffset+B_RIGHT];
-  Button& bFence  = buttons[playerOffset+B_FENCE];
-  Button& bRocket = buttons[playerOffset+B_ROCKET];
+  Button& bL      = buttons[playerOffset + B_LEFT];
+  Button& bR      = buttons[playerOffset + B_RIGHT];
+  Button& bFence  = buttons[playerOffset + B_FENCE];
+  Button& bRocket = buttons[playerOffset + B_ROCKET];
   //Only Right or Left bit can be set
-  if(bL.wasPressed && (!bR.wasPressed || bL.stateChangeTime < bR.stateChangeTime)) {
-    result |= 1 << (7-p-B_LEFT);
+  if (bL.wasPressed && (!bR.wasPressed || bL.stateChangeTime < bR.stateChangeTime)) {
+    result |= _BV(B_LEFT);
     bL.wasPressed = false;
   }
-  else {
-    result |= 1 << (3 - B_RIGHT);
+  else if (bR.wasPressed) {
+    result |= _BV(B_RIGHT);
     bR.wasPressed = false;
   }
-  if(bFence.wasPressed || bFence.isPressed) {
-    result |= 1 << (3 - B_FENCE);
+  //Fence button remains in effect until it is released
+  if (bFence.wasPressed || bFence.isPressed) {
+    result |= _BV(B_FENCE);
     bFence.wasPressed = false;
   }
-  if(bRocket.wasPressed) {
-    result |= 1 << (3 - B_ROCKET);
+  //Rocket button is active on initial press
+  if (bRocket.wasPressed) {
+    result |= _BV(B_ROCKET);
     bRocket.wasPressed = false;
   }
-  result = result << (4 - playerOffset);
+  result = result << playerOffset;
   return result;
 }
 
-void clearWasPressed(){
+/*
+void clearWasPressed() {
   uint8_t id = NUM_BUTTONS;
-  while(--id) {
+  while (id--) {
     buttons[id].wasPressed = false;
   }
 }
 
-void pollButtonStates(){
+void pollButtonStates() {
   uint8_t id = NUM_BUTTONS;
-  while(--id) {
+  while (id--) {
     Update(buttons[id]);
   }
 }
 
-/* Returns a byte containing the isPressed state of
-   all NUM_BUTTONS (<= 8) buttons, where the nth
-   button is represented by the nth bit. */
-uint8_t getButtonIsPressedState(){
+// Returns a byte containing the isPressed state of
+// all NUM_BUTTONS (<= 8) buttons, where the nth
+// button is represented by the nth bit.
+uint8_t getButtonIsPressedState() {
   uint8_t allStates = 0;
   uint8_t id = NUM_BUTTONS;
-  while(--id) {
+  while (id--) {
     //Set bit in allStates if button is pressed
     if (buttons[id].isPressed)
       allStates |= _BV(id);
@@ -90,34 +94,28 @@ uint8_t getButtonIsPressedState(){
   return allStates;
 }
 
-/* Returns a byte containing the wasPressed state of
-   all NUM_BUTTONS (<= 8) buttons, where the nth
-   button is represented by the nth bit. */
-uint8_t getButtonWasPressedState(){
+// Returns a byte containing the wasPressed state of
+// all NUM_BUTTONS (<= 8) buttons, where the nth
+// button is represented by the nth bit.
+uint8_t getButtonWasPressedState() {
   uint8_t allStates = 0;
   uint8_t id = NUM_BUTTONS;
-  while(--id) {
+  while (id--) {
     //Set bit in allStates if button was pressed
     if (buttons[id].wasPressed)
       allStates |= _BV(id);
   }
   return allStates;
 }
+*/
 
 void loop() {
   pollButtonStates();
-  if(Serial.available()) {
+  if (Serial.available()) {
     //Empty the Serial input buffer (we respond the same way to any character)
-    while(Serial.read() != -1) {}
+    while (Serial.read() != -1) {}
     //Send Button state for both players
-    uint8_t state = getButtonStateForPlayer(P0) | getButtonStateForPlayer(P1);
+    uint8_t state = getButtonStateForPlayer(P1) | getButtonStateForPlayer(P2);
     Serial.write(state);
-    /*
-    //Send isPressed and wasPressed state
-    Serial.write(getButtonIsPressedState());
-    Serial.write(getButtonWasPressedState());
-    //Clear wasPressed state because client knows about it now
-    clearWasPressed();
-    */
   }
 }
