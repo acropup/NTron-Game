@@ -9,7 +9,6 @@
 #include "Explosion.h"
 #include "Powerup.h"
 #include "PowerBar.h"
-//TODO: In FastLED lib8tion.h, can use beat8() and similar functions for generating waves
 
 //The last element is never shown, it's a convenience for out-of-bounds writes to go to (see XYsafe())
 CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP + 1];
@@ -54,6 +53,7 @@ void setup() {
   randomSeed(analogRead(17)); //Reading a floating pin for a random seed
   
   TweenIgnoreOOBPixel = &leds[NUM_STRIPS * NUM_LEDS_PER_STRIP]; //Last array element is the out-of-bounds catch-all pixel for XYSafe()
+  initSerialController();
   initPlayer(0);
   initPlayer(1);
   resetGame();
@@ -128,7 +128,7 @@ void loop() {
     //TODO: Should have a timeout or retry
     while(!checkForButtonStatus()) {}
     //Take all new button states and apply to each player
-    setPlayerButtonState(getPlayer(0).btnState, getPlayer(1).btnState);
+    setPlayerButtonState(getPlayer(0).buttons, getPlayer(1).buttons);
 
     processFrame();
   }

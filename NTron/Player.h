@@ -6,7 +6,7 @@
 #include "Rocket.h"
 
 typedef struct Player_ {
-  PlayerButtonState btnState; //State of all player buttons, from SerialGameControllerClient.h
+  PlayerButtonState buttons; //State of all player buttons, from SerialGameControllerClient.h
   bool isAlive;    //Player is still alive
   int8_t x;  //Position on screen
   int8_t y;
@@ -43,7 +43,7 @@ inline Player& getPlayer(uint8_t pid){
   and if they have enough power to lay a fence.
   If so, consumes power and returns true. */
 bool isPlayerFencing(Player& p){
-  if(p.btnState.Fence && p.power >= FENCE_COST) {
+  if(p.buttons.Fence && p.power >= FENCE_COST) {
     p.power-=FENCE_COST;
     return true;
   }
@@ -63,7 +63,7 @@ void maybeLayFence(CRGB leds[], Player& p) {
 
 //Fires a rocket if Player pressed the Fire button this frame
 void maybeFireRocket(Player& p){
-  if(p.btnState.Rocket && p.power > ROCKET_COST) {
+  if(p.buttons.Rocket && p.power > ROCKET_COST) {
     p.power-=ROCKET_COST;
     fireRocket(p.x, p.y, p.dx, p.dy);
   }
@@ -79,8 +79,8 @@ inline void layAllFences(CRGB leds[]) {
 
 void updatePlayerDirection(Player& p){
   //Only one of these should ever be true
-  bool bL = p.btnState.Left;
-  bool bR = p.btnState.Right;
+  bool bL = p.buttons.Left;
+  bool bR = p.buttons.Right;
   if(bL) {
     //Turn left
     if(p.dx) {
