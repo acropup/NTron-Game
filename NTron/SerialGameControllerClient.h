@@ -1,20 +1,30 @@
 #ifndef SERIALGAMECONTROLLERCLIENT_H
 #define SERIALGAMECONTROLLERCLIENT_H
 
+#define BTN_LEFT   _BV(3)
+#define BTN_RIGHT  _BV(2)
+#define BTN_FENCE  _BV(1)
+#define BTN_ROCKET _BV(0)
+
+inline bool checkButtonState(int buttonStates, int buttonMask) {
+  return buttonStates & buttonMask;
+}
+
 //Warning: bit-field behaviour is largely defined across platforms.
 //This works with the Arduino IDE and Teensy, but might not elsewhere.
 union PlayerButtonState {
   struct {
-    bool Rocket : 1;
+    bool Rocket : 1; //LSB
     bool Fence  : 1;
     bool Right  : 1;
-    bool Left   : 1;
+    bool Left   : 1; //MSB
   };
   uint8_t raw;
 };
 
 uint8_t btnStates;
 
+//Call this in program setup
 void initSerialController() {
   //On Teensy 3.1, Serial1 uses pins 0 (RX) and 1 (TX). These are available while using OctoWS2811 shield.
   Serial1.begin(9600);

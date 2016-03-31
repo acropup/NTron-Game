@@ -151,6 +151,20 @@ void loop() {
       //Reset to ask again next frame
       askController = true;
 
+      #ifdef DEBUG
+        PlayerButtonState btns = getPlayer(0).buttons;
+        Serial.print("Player 1 button state: ");
+        Serial.println(btns.raw, BIN);
+        Serial.print("Left: ");
+        Serial.println(btns.Left);
+        Serial.print("Right: ");
+        Serial.println(btns.Right);
+        Serial.print("Fence: ");
+        Serial.println(btns.Fence);
+        Serial.print("Rocket: ");
+        Serial.println(btns.Rocket);
+      #endif
+
       processFrame();
     }
   }
