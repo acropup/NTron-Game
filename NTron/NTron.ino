@@ -15,9 +15,12 @@ CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP + 1];
 
 elapsedMillis timeElapsed;
 unsigned long msPerFrame = 150;
+unsigned long msControllerDelay = 0;
+
 
 //int xtest = 12;
 void resetGame() {
+  msControllerDelay = measureControllerDelay();
   timeElapsed = 0;
   memset(leds, 0, WIDTH*HEIGHT*sizeof(CRGB));
   clearExplosions();
@@ -105,9 +108,9 @@ void processFrame() {
       Serial.print(pid+1);
       Serial.println(" collided!");
       if(pid == 0) {
-        //delay(1000);
-        //resetGame();
-        //return;
+        delay(1000);
+        resetGame();
+        return;
       }
     }
   }
@@ -117,20 +120,39 @@ void processFrame() {
   updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
 }
 
+bool askController = true;
+
 void loop() {
-  if (timeElapsed >= msPerFrame) { //Time for a new frame
-    timeElapsed -= msPerFrame;
-    //TODO: Might want to ask for button status some ms before the end of the frame. Measure this!
-    askForButtonStatus();
-    //Finish up the last frame
-    finalizeTweens();
+  if (timeElapsed >= msPerFrame - msControllerDelay) {
+    //Ask controller for button status in advance of the end of frame, so controller has time to respond
+    if (askController) {
+      askForButtonStatus();
+      askController = false; //Only ask once per frame
+    }
+    if (timeElapsed >= msPerFrame) { //Time for a new frame
+      timeElapsed -= msPerFrame;
+      //Finish up the last frame
+      finalizeTweens();
+      
+      //Wait for up to 10ms for the button status to arrive
+      int retry = 10;
+      while(!checkForButtonStatus() && retry--) { delay(1); }
+      
+      #ifdef DEBUG
+        Serial.print("Received button states with ");
+        Serial.println(retry);
+        Serial.print("/10 retries remaining.");
+        Serial.print("Button states: ");
+        Serial.println(btnStates, BIN);
+      #endif
+      
+      //Take all new button states and apply to each player
+      setPlayerButtonState(getPlayer(0).buttons, getPlayer(1).buttons);
+      //Reset to ask again next frame
+      askController = true;
 
-    //TODO: Should have a timeout or retry
-    while(!checkForButtonStatus()) {}
-    //Take all new button states and apply to each player
-    setPlayerButtonState(getPlayer(0).buttons, getPlayer(1).buttons);
-
-    processFrame();
+      processFrame();
+    }
   }
 
   //Tween pixels while in between frames

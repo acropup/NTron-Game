@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#define DEBUG //Defining DEBUG enables extra Serial debug output
+
 #define NUM_LEDS_PER_STRIP 256
 #define NUM_STRIPS 3
 

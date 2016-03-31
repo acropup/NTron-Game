@@ -1,5 +1,7 @@
 #include "Button.h"
 
+#define SER Serial1
+#define LED_PIN 13
 #define NUM_BUTTONS 8
 //Offset for each player in the button array
 #define P1 4
@@ -13,17 +15,18 @@ Button buttons[NUM_BUTTONS];
 
 void setup() {
   //Assign Pin numbers for buttons
-  buttons[7] = CreateButton(0); //P1 Left
-  buttons[6] = CreateButton(1); //P1 Right
-  buttons[5] = CreateButton(2); //P1 Fence
-  buttons[4] = CreateButton(3); //P1 Rocket
+  buttons[7] = CreateButton(2); //P1 Left
+  buttons[6] = CreateButton(3); //P1 Right
+  buttons[5] = CreateButton(4); //P1 Fence
+  buttons[4] = CreateButton(5); //P1 Rocket
   buttons[3] = CreateButton(6); //P2 Left
   buttons[2] = CreateButton(7); //P2 Right
   buttons[1] = CreateButton(8); //P2 Fence
   buttons[0] = CreateButton(9); //P2 Rocket
   //The byte of button info sent by Serial is mapped according to array index, like 76543210
 
-  Serial.begin(9600);
+  SER.begin(9600);
+  pinMode(LED_PIN, OUTPUT);
 }
 
 /* Returns the button state for player P1 or P2 (see #defines)
@@ -72,12 +75,14 @@ void pollButtonStates() {
 
 void loop() {
   pollButtonStates();
-  if (Serial.available()) {
+  if (SER.available()) {
+    digitalWrite(LED_PIN, HIGH);
     //Send Button state for both players
     uint8_t state = (getButtonStateForPlayer(P1) << P1) | (getButtonStateForPlayer(P2) << P2);
-    Serial.write(state);
+    SER.write(state);
     //Empty the Serial input buffer (we treat any character as a query)
-    while (Serial.read() != -1) {}
+    while (SER.read() != -1) {}
+    digitalWrite(LED_PIN, LOW);
   }
 }
 

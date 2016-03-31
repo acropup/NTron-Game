@@ -5,10 +5,10 @@
 //This works with the Arduino IDE and Teensy, but might not elsewhere.
 union PlayerButtonState {
   struct {
-    bool Left   : 1;
-    bool Right  : 1;
-    bool Fence  : 1;
     bool Rocket : 1;
+    bool Fence  : 1;
+    bool Right  : 1;
+    bool Left   : 1;
   };
   uint8_t raw;
 };
@@ -39,6 +39,31 @@ bool checkForButtonStatus() {
 void setPlayerButtonState(PlayerButtonState & p1State, PlayerButtonState & p2State) {
   p1State.raw = (btnStates >> 4);
   p2State.raw = (btnStates & 0x0F);
+}
+
+//Queries the controller 8 times to determine the average response time
+unsigned long measureControllerDelay() {
+  //Poll and wait until controller is responding
+  while(!checkForButtonStatus()) {
+    askForButtonStatus();
+  }
+  checkForButtonStatus();
+  
+  elapsedMillis totalTime = 0;
+  //Measure response time and average over 8 queries
+  for(int i = 0; i < 8; i++) {
+    askForButtonStatus();
+    int retry = 10;
+    while(!checkForButtonStatus() && retry--) { delay(1); }
+  }
+  unsigned long avg = totalTime >> 3; //Divide by 8 to get average per query
+
+  #ifdef DEBUG
+    Serial.print("Controller response time is ");
+    Serial.print(avg);
+    Serial.print("ms.");
+  #endif
+  return avg;
 }
 
 #endif
