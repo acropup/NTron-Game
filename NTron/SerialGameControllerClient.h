@@ -1,16 +1,7 @@
 #ifndef SERIALGAMECONTROLLERCLIENT_H
 #define SERIALGAMECONTROLLERCLIENT_H
 
-#define BTN_LEFT   _BV(3)
-#define BTN_RIGHT  _BV(2)
-#define BTN_FENCE  _BV(1)
-#define BTN_ROCKET _BV(0)
-
-inline bool checkButtonState(int buttonStates, int buttonMask) {
-  return buttonStates & buttonMask;
-}
-
-//Warning: bit-field behaviour is largely defined across platforms.
+//Warning: bit-field behaviour is largely dependent on platform implementation.
 //This works with the Arduino IDE and Teensy, but might not elsewhere.
 union PlayerButtonState {
   struct {
