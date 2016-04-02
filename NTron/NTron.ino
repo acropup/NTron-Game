@@ -14,13 +14,12 @@
 CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP + 1];
 
 elapsedMillis timeElapsed;
-unsigned long msPerFrame = 150;
-unsigned long msControllerDelay = 0;
+unsigned long msPerFrame = 150;       //This can be changed real-time to change game speed.
+unsigned long msControllerDelay = 13; //Screen refresh is 7.8ms and Serial response is 3-5ms. Upper bound is 8+5 = 13ms.
 
 
 //int xtest = 12;
 void resetGame() {
-  msControllerDelay = measureControllerDelay();
   timeElapsed = 0;
   memset(leds, 0, WIDTH*HEIGHT*sizeof(CRGB));
   clearExplosions();
@@ -135,15 +134,26 @@ void loop() {
       finalizeTweens();
       
       //Wait for up to 10ms for the button status to arrive
-      int retry = 10;
-      while(!checkForButtonStatus() && retry--) { delay(1); }
+      int timeLeft = waitForButtonStatus(10);
       
+      if (timeLeft == -1) { //Failed to receive button status before the timeout
+        //Make the error visible on screen, as a randomly coloured horizontal bar
+        uint8_t y = HEIGHT - 2;
+        CRGB c = CHSV((uint8_t)random(255), ~0, ~0);
+        for (int8_t x = WIDTH-1; x >= 0; x--) {
+          leds[XY(x, y)] = c;
+        }
+      }
       #ifdef DEBUG
-        Serial.print("Received button states with ");
-        Serial.println(retry);
-        Serial.print("/10 retries remaining.");
-        Serial.print("Button states: ");
-        Serial.println(btnStates, BIN);
+        if (timeLeft == -1) {
+         Serial.print("*****Did not receive button states within 10ms!*****");
+        }
+        else {
+          Serial.print("Received button states within ");
+          Serial.print(10 - timeLeft);
+          Serial.print("ms. Button states: ");
+          Serial.println(btnStates, BIN);
+        }
       #endif
       
       //Take all new button states and apply to each player
@@ -171,5 +181,5 @@ void loop() {
 
   //Tween pixels while in between frames
   updateFrame(timeElapsed, msPerFrame);
-  FastLED.show();
+  FastLED.show(); //FastLED takes ~7.8ms to update our screen of 3x256 pixels.
 }

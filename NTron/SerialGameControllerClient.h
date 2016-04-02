@@ -36,6 +36,22 @@ bool checkForButtonStatus() {
   return received;
 }
 
+// Waits for up to 'timeout' milliseconds for the button state to arrive.
+// If it arrives, saves new state to btnStates and returns number of ms remaining.
+// If timeout, returns -1 and sets btnStates to 0.
+int waitForButtonStatus(int timeout) {
+  while (!Serial1.available() && timeout--) { delay(1); }
+  
+  if (timeout >= 0) { //Button status is available; go get it!
+    checkForButtonStatus();
+  }
+  else { //Did not receive button status within timeout
+    //Clear the previous button state
+    btnStates = 0;
+  }
+  return timeout;
+}
+
 //Copies button states from the serial response to each player's state.
 void setPlayerButtonState(PlayerButtonState & p1State, PlayerButtonState & p2State) {
   p1State.raw = (btnStates >> 4);
