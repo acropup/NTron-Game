@@ -1,10 +1,4 @@
 #include "Button.h"
-/* SerialGameController.h 
- * Monitors up to 8 pins for button presses, and sends the button states
- * over Serial to another microcontroller whenever queried. The logic in
- * getButtonStateForPlayer() is customized to make each button work and 
- * feel right for my particular game. Your needs may differ.
- */
 
 #define NUM_BUTTONS 8
 //Offset for each player in the button array
@@ -17,7 +11,13 @@
 #define B_ROCKET 0
 Button buttons[NUM_BUTTONS];
 
-/* int pins[NUM_BUTTONS] = { P1 Left, P1 Right, P1 Fence, P1 Rocket,
+/* SerialGameController.h 
+ * Monitors up to 8 pins for button presses, and sends the button states
+ * over Serial to another microcontroller whenever queried. The logic in
+ * getButtonStateForPlayer() is customized to make each button work and 
+ * feel right for my particular game. Your needs may differ.
+ *
+ * int pins[NUM_BUTTONS] = { P1 Left, P1 Right, P1 Fence, P1 Rocket,
  *                           P2 Left, P2 Right, P2 Fence, P2 Rocket };
  * The Serial byte of button info sent is mapped according to array index,
  * with first button (P1 Left) controlling MSB, and last button (P2 Rocket)
