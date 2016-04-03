@@ -20,6 +20,7 @@ void clearPowerups() {
   numPowerups = 0;
 }
 
+//Spawn a powerup (maybe). Randomization logic is simple and may result in no powerup spawned.
 void spawnPowerup(CRGB* leds) {
   if(numPowerups >= MAX_POWERUPS) return;
   
