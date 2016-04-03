@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <FastLED.h>
 #include "Constants.h"
 #include "SerialGameControllerClient.h"
 #include "Rocket.h"
@@ -13,6 +14,8 @@ typedef struct Player_ {
   int8_t dx; //Direction traveling. Either dx or dy should be 0.
   int8_t dy;
   uint8_t power; //Power level for using special ability. Rocket costs 16, 1px Fence costs 2, powerup gives 16, auto-regen 1 per 2 frames. Config in Constants.h.
+  CRGB colour;      // Colour of player pixel
+  CRGB fenceColour; // Colour of player's fences
 } Player;
 
 static const uint8_t NUMPLAYERS = 2;
@@ -30,8 +33,8 @@ void resetPlayer(Player& p, int8_t posX, int8_t posY, int8_t dx, int8_t dy){
   p.dy = dy;
 }
 
-Player& initPlayer(uint8_t pid) {
-  players[pid] = { 0, true, 0, 0, 1, 0, 0 };
+Player& initPlayer(uint8_t pid, CRGB colour) {
+  players[pid] = { 0, true, 0, 0, 1, 0, 0, colour, ((CRGB)FENCECOLOUR).lerp8(colour, 0.25) };
   return players[pid];
 }
 

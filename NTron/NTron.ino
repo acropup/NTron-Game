@@ -38,13 +38,8 @@ void resetGame() {
     leds[XY(24, 3*i+1)] = (CRGB)FENCECOLOUR;
   }*/
   
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
-  spawnPowerup(leds);
+  spawnPowerups(leds, 7);
+  
   //fireRocket(4, 3, 1, 0);
   //fireRocket(xtest++, 11, 0, -1);
   //leds[XY(xtest--, 3)] = (CRGB)FENCECOLOUR;
@@ -56,8 +51,8 @@ void setup() {
   
   TweenIgnoreOOBPixel = &leds[NUM_STRIPS * NUM_LEDS_PER_STRIP]; //Last array element is the out-of-bounds catch-all pixel for XYSafe()
   initSerialController();
-  initPlayer(0);
-  initPlayer(1);
+  initPlayer(0, PLAYER1COLOUR);
+  initPlayer(1, PLAYER2COLOUR);
   resetGame();
   // Pin layouts on the teensy 3:
   // OctoWS2811: 2,14,7,8,6,20,21,5
@@ -90,15 +85,12 @@ void processFrame() {
   for(int pid = 0; pid < NUMPLAYERS; pid++) {
     Player& p = getPlayer(pid);
     if(leds[XY(p.x, p.y)] == (CRGB)BGCOLOUR) { //Player is moving into an empty pixel
-      addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
+      addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
     }
     else if (hitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
-      addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], PLAYERCOLOUR));
+      addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
       applyPowerup(p);
-      spawnPowerup(leds);
-      spawnPowerup(leds); //TODO: Remove these, just useful for testing
-      spawnPowerup(leds);
-      spawnPowerup(leds);
+      spawnPowerups(leds, 4);
     }
     else {
       p.isAlive = false;

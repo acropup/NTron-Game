@@ -33,6 +33,13 @@ void spawnPowerup(CRGB* leds) {
   powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
 }
 
+//Spawn howMany powerups
+void spawnPowerups(CRGB* leds, uint8_t howMany) {
+  while (howMany--) {
+    spawnPowerup(leds);
+  }
+}
+
 //TODO: This is a test function to spawn powerups at specific positions
 void spawnPowerup(CRGB* leds, uint8_t x, uint8_t y) {
   if(numPowerups >= MAX_POWERUPS) return;

@@ -11,7 +11,8 @@
 
 #define FENCECOLOUR      CRGB::Blue
 #define BGCOLOUR         CRGB::Black //Background colour
-#define PLAYERCOLOUR     CRGB::Green
+#define PLAYER1COLOUR    CRGB::Green
+#define PLAYER2COLOUR    CRGB::Pink
 #define ROCKETCOLOUR     CRGB::Orange
 #define ROCKETFADECOLOUR CRGB::Red
 
