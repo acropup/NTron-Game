@@ -9,10 +9,10 @@
 typedef struct Player_ {
   PlayerButtonState buttons; //State of all player buttons, from SerialGameControllerClient.h
   bool isAlive;    //Player is still alive
-  int8_t x;  //Position on screen
+  int8_t x;  //Position on screen. (0,0) is top left.
   int8_t y;
   int8_t dx; //Direction traveling. Either dx or dy should be 0.
-  int8_t dy;
+  int8_t dy; //+dx is right, +dy is down.
   uint8_t power; //Power level for using special ability. Rocket costs 16, 1px Fence costs 2, powerup gives 16, auto-regen 1 per 2 frames. Config in Constants.h.
   CRGB colour;      // Colour of player pixel
   CRGB fenceColour; // Colour of player's fences
@@ -87,21 +87,21 @@ void updatePlayerDirection(Player& p){
   if(bL) {
     //Turn left
     if(p.dx) {
-      p.dy = p.dx;
-      p.dx = 0;
-    } 
-    else {
-      p.dx = -p.dy;
-      p.dy = 0;
-    }
-  } else if(bR) {
-    //Turn right
-    if(p.dx) {
       p.dy = -p.dx;
       p.dx = 0;
     } 
     else {
       p.dx = p.dy;
+      p.dy = 0;
+    }
+  } else if(bR) {
+    //Turn right
+    if(p.dx) {
+      p.dy = p.dx;
+      p.dx = 0;
+    } 
+    else {
+      p.dx = -p.dy;
       p.dy = 0;
     }
   }
