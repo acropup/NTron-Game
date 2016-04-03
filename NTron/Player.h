@@ -34,7 +34,12 @@ void resetPlayer(Player& p, int8_t posX, int8_t posY, int8_t dx, int8_t dy){
 }
 
 Player& initPlayer(uint8_t pid, CRGB colour) {
-  players[pid] = { 0, true, 0, 0, 1, 0, 0, colour, ((CRGB)FENCECOLOUR).lerp8(colour, 0.25) };
+  players[pid] = { 0, true, 0, 0, 1, 0, 0, colour, ((CRGB)FENCECOLOUR).lerp8(colour, 32) };
+  
+  //TODO: Figure out why this is necessary to set the colours
+  Player &p = players[pid];
+  p.colour = colour;
+  p.fenceColour = ((CRGB)FENCECOLOUR).lerp8(colour, 32); //TODO: doesn't actually blend, figure this out
   return players[pid];
 }
 
@@ -57,7 +62,7 @@ bool isPlayerFencing(Player& p){
   and they have enough power to afford it. */
 void maybeLayFence(CRGB leds[], Player& p) {
   if(isPlayerFencing(p)) {
-    addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], FENCECOLOUR));
+    addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.fenceColour));
   }
   else {
     addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], BGCOLOUR));

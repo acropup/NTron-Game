@@ -81,6 +81,7 @@ void processFrame() {
     explodeAt(p.x, p.y, 2);
     Serial.println("Players collided!");
   }
+  
   //Check for collisions
   for(int pid = 0; pid < NUMPLAYERS; pid++) {
     Player& p = getPlayer(pid);
