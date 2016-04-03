@@ -1,7 +1,11 @@
 #include "Button.h"
+/* SerialGameController.h 
+ * Monitors up to 8 pins for button presses, and sends the button states
+ * over Serial to another microcontroller whenever queried. The logic in
+ * getButtonStateForPlayer() is customized to make each button work and 
+ * feel right for my particular game. Your needs may differ.
+ */
 
-#define SER Serial1
-#define LED_PIN 13
 #define NUM_BUTTONS 8
 //Offset for each player in the button array
 #define P1 4
@@ -13,17 +17,29 @@
 #define B_ROCKET 0
 Button buttons[NUM_BUTTONS];
 
+/* int pins[NUM_BUTTONS] = { P1 Left, P1 Right, P1 Fence, P1 Rocket,
+ *                           P2 Left, P2 Right, P2 Fence, P2 Rocket };
+ * The Serial byte of button info sent is mapped according to array index,
+ * with first button (P1 Left) controlling MSB, and last button (P2 Rocket)
+ * controlling LSB.
+ */
+
+//Teensy 3.1 - Serial1 uses pins (0, 1) for (Rx, Tx)
+#define SER Serial1
+#define LED_PIN 13
+int pins[NUM_BUTTONS] = { 2, 3, 4, 5, 6, 7, 8, 9 };
+/*
+//Arduino Nano - Serial uses pins (0, 1) for (Rx, Tx)
+#define SER Serial
+#define LED_PIN 13
+int pins[NUM_BUTTONS] = { 2, 3, 4, 5, 6, 7, 8, 9 };
+*/
+
 void setup() {
   //Assign Pin numbers for buttons
-  buttons[7] = CreateButton(2); //P1 Left
-  buttons[6] = CreateButton(3); //P1 Right
-  buttons[5] = CreateButton(4); //P1 Fence
-  buttons[4] = CreateButton(5); //P1 Rocket
-  buttons[3] = CreateButton(6); //P2 Left
-  buttons[2] = CreateButton(7); //P2 Right
-  buttons[1] = CreateButton(8); //P2 Fence
-  buttons[0] = CreateButton(9); //P2 Rocket
-  //The byte of button info sent by Serial is mapped according to array index, like 76543210
+  for(int bit = 0; bit < NUM_BUTTONS; bit++) {
+    buttons[bit] = CreateButton(pins[NUM_BUTTONS-1-bit]);
+  }
 
   SER.begin(9600);
   pinMode(LED_PIN, OUTPUT);
