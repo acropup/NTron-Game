@@ -65,7 +65,7 @@ int8_t stepRocket(CRGB leds[], Rocket& r, uint8_t numSteps) {
     r.x+=r.dx;
     r.y+=r.dy;
     //Check for collision with next pixel
-    if(leds[XYsafe(r.x, r.y)] != (CRGB)BGCOLOUR) {
+    if(leds[XYsafe(r.x, r.y)] != BGCOLOUR) {
       //Rocket is moving into an occupied pixel (collision!)
       break;
     }
@@ -196,7 +196,7 @@ void updateRockets(CRGB leds[]) {
           }
           else if(collisionState == -1) { //Out-of-bounds
             //Clear the Powerup pixel
-            addPixelTween(tweenPixelTo(leds[XY(r.x-r.dx, r.y-r.dy)], (CRGB)BGCOLOUR));
+            addPixelTween(tweenPixelTo(leds[XY(r.x-r.dx, r.y-r.dy)], BGCOLOUR));
           }
         }
         else { //Collision with Powerup on 2nd pixel step

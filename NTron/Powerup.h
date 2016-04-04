@@ -5,8 +5,6 @@
 #include "PixelTweening.h"
 #include "Constants.h"
 
-#define BGCOLOUR CRGB::Black
-
 typedef struct Powerup_ {
   uint16_t pos;  //Position on screen
   uint8_t hue;
@@ -27,7 +25,7 @@ void spawnPowerup(CRGB* leds) {
   int8_t x, y;
   x = random(WIDTH);
   y = random(HEIGHT - 2);
-  if (leds[XY(x, y)] != (CRGB)BGCOLOUR) {
+  if (leds[XY(x, y)] != BGCOLOUR) {
     return;
   }
   
@@ -44,7 +42,7 @@ void spawnPowerups(CRGB* leds, uint8_t howMany) {
 //TODO: This is a test function to spawn powerups at specific positions
 void spawnPowerup(CRGB* leds, uint8_t x, uint8_t y) {
   if(numPowerups >= MAX_POWERUPS) return;
-  if (leds[XY(x, y)] != (CRGB)BGCOLOUR) {
+  if (leds[XY(x, y)] != BGCOLOUR) {
     return;
   }
   

@@ -51,16 +51,16 @@ void drawExplosion(CRGB leds[], uint8_t eid) {
           //     * * *
           //       *
           addPixelTween({&leds[XY(x,y)], CRGB::White, CRGB::Yellow });                //Center
-          if(x > 0) addPixelTween({&leds[XY(x-1,y)], CRGB::Yellow, (CRGB)BGCOLOUR }); //Left
-          if(x < 31)addPixelTween({&leds[XY(x+1,y)], CRGB::Yellow, (CRGB)BGCOLOUR }); //Right
-          if(y > 0) addPixelTween({&leds[XY(x,y-1)], CRGB::Yellow, (CRGB)BGCOLOUR }); //Up
-          if(y < 23)addPixelTween({&leds[XY(x,y+1)], CRGB::Yellow, (CRGB)BGCOLOUR }); //Down
+          if(x > 0) addPixelTween({&leds[XY(x-1,y)], CRGB::Yellow, BGCOLOUR }); //Left
+          if(x < 31)addPixelTween({&leds[XY(x+1,y)], CRGB::Yellow, BGCOLOUR }); //Right
+          if(y > 0) addPixelTween({&leds[XY(x,y-1)], CRGB::Yellow, BGCOLOUR }); //Up
+          if(y < 23)addPixelTween({&leds[XY(x,y+1)], CRGB::Yellow, BGCOLOUR }); //Down
           e.age = 1;
           break;
         }
         case 1:
         {
-          addPixelTween({&leds[XY(x,y)], CRGB::Yellow, (CRGB)BGCOLOUR });             //Center
+          addPixelTween({&leds[XY(x,y)], CRGB::Yellow, BGCOLOUR });             //Center
           removeExplosion(eid);
           break;
         }

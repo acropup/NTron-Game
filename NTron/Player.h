@@ -34,12 +34,13 @@ void resetPlayer(Player& p, int8_t posX, int8_t posY, int8_t dx, int8_t dy){
 }
 
 Player& initPlayer(uint8_t pid, CRGB colour) {
-  players[pid] = { 0, true, 0, 0, 1, 0, 0, colour, ((CRGB)FENCECOLOUR).lerp8(colour, 32) };
-  
-  //TODO: Figure out why this is necessary to set the colours
   Player &p = players[pid];
+  p = { 0, true, 0, 0, 1, 0, 0, 0, 0 };
+  
+  //TODO: Figure out why this is necessary to set the colours. Doesn't seem to work in struct initializer.
   p.colour = colour;
-  p.fenceColour = ((CRGB)FENCECOLOUR).lerp8(colour, 32); //TODO: doesn't actually blend, figure this out
+  p.fenceColour = FENCECOLOUR.lerp8(colour, 64);
+  
   return players[pid];
 }
 
@@ -69,19 +70,19 @@ void maybeLayFence(CRGB leds[], Player& p) {
   }
 }
 
-//Fires a rocket if Player pressed the Fire button this frame
-void maybeFireRocket(Player& p){
-  if(p.buttons.Rocket && p.power > ROCKET_COST) {
-    p.power-=ROCKET_COST;
-    fireRocket(p.x, p.y, p.dx, p.dy);
-  }
-}
-
 //Draws a fence behind every player that is laying fences this frame
 inline void layAllFences(CRGB leds[]) {
   uint8_t pid = NUMPLAYERS;
   while(pid > 0){
     maybeLayFence(leds, getPlayer(--pid));
+  }
+}
+
+//Fires a rocket if Player pressed the Fire button this frame
+void maybeFireRocket(Player& p){
+  if(p.buttons.Rocket && p.power > ROCKET_COST) {
+    p.power-=ROCKET_COST;
+    fireRocket(p.x, p.y, p.dx, p.dy);
   }
 }
 

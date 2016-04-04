@@ -9,12 +9,12 @@
 #define WIDTH  32
 #define HEIGHT 24
 
-#define FENCECOLOUR      CRGB::Blue
-#define BGCOLOUR         CRGB::Black //Background colour
-#define PLAYER1COLOUR    CRGB::Green
-#define PLAYER2COLOUR    CRGB::DeepPink
-#define ROCKETCOLOUR     CRGB::Orange
-#define ROCKETFADECOLOUR CRGB::Red
+#define FENCECOLOUR      ((CRGB)CRGB::Blue)
+#define BGCOLOUR         ((CRGB)CRGB::Black) //Background colour
+#define PLAYER1COLOUR    ((CRGB)CRGB::Green)
+#define PLAYER2COLOUR    ((CRGB)CRGB::DeepPink)
+#define ROCKETCOLOUR     ((CRGB)CRGB::Orange)
+#define ROCKETFADECOLOUR ((CRGB)CRGB::Red)
 
 #define POWERUP_HUE_SPEED 30 //Speed of powerup rainbow animation
 

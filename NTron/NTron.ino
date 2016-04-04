@@ -1,3 +1,4 @@
+#define FASTLED_INTERNAL //Suppresses the FastLED version "warning"
 #define USE_OCTOWS2811
 #include <OctoWS2811.h>
 #include <FastLED.h>
@@ -32,18 +33,18 @@ void resetGame() {
 
   /*for(int i = 0; i < 7; i++) {
     spawnPowerup(leds, 31, 3*i+1);
-    leds[XY(21, 3*i+1)] = (CRGB)FENCECOLOUR;
-    leds[XY(22, 3*i+1)] = (CRGB)FENCECOLOUR;
-    leds[XY(23, 3*i+1)] = (CRGB)FENCECOLOUR;
-    leds[XY(24, 3*i+1)] = (CRGB)FENCECOLOUR;
+    leds[XY(21, 3*i+1)] = FENCECOLOUR;
+    leds[XY(22, 3*i+1)] = FENCECOLOUR;
+    leds[XY(23, 3*i+1)] = FENCECOLOUR;
+    leds[XY(24, 3*i+1)] = FENCECOLOUR;
   }*/
   
   spawnPowerups(leds, 7);
   
   //fireRocket(4, 3, 1, 0);
   //fireRocket(xtest++, 11, 0, -1);
-  //leds[XY(xtest--, 3)] = (CRGB)FENCECOLOUR;
-  //leds[XY(14, 3)] = (CRGB)FENCECOLOUR;
+  //leds[XY(xtest--, 3)] = FENCECOLOUR;
+  //leds[XY(14, 3)] = FENCECOLOUR;
 }
 
 void setup() {
@@ -85,7 +86,7 @@ void processFrame() {
   //Check for collisions
   for(int pid = 0; pid < NUMPLAYERS; pid++) {
     Player& p = getPlayer(pid);
-    if(leds[XY(p.x, p.y)] == (CRGB)BGCOLOUR) { //Player is moving into an empty pixel
+    if(leds[XY(p.x, p.y)] == BGCOLOUR) { //Player is moving into an empty pixel
       addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
     }
     else if (hitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
@@ -132,9 +133,9 @@ void loop() {
       if (timeLeft == -1) { //Failed to receive button status before the timeout
         //Make the error visible on screen, as a randomly coloured horizontal bar
         uint8_t y = HEIGHT - 2;
-        CRGB c = CHSV((uint8_t)random(255), ~0, ~0);
+        CRGB randColour = CHSV((uint8_t)random(255), ~0, ~0);
         for (int8_t x = WIDTH-1; x >= 0; x--) {
-          leds[XY(x, y)] = c;
+          leds[XY(x, y)] = randColour;
         }
       }
       #ifdef DEBUG
