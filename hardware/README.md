@@ -12,11 +12,11 @@ Cabling used is standard Cat-6 Ethernet cable. 8 wires isn't necessary, but Cat-
 
 ##TTL Serial to RS-232 over Cat-6 Adapter
 
+I made these RS-232 adapter boards with Cat-6 (ethernet) sockets, to transfer both the serial data and 5V power to the controller Arduino. They are electrically identical, except for on one I have crossed the Tx and Rx lines on the RS-232 side because it's designed for a straight-through ethernet cable. The male angle headers are (in order) 5V, Gnd, Tx, Rx.
+
 ![RS-232 Front](./RS-232_Adapter_Front.jpg)
 
 ![RS-232 Back](./RS-232_Adapter_Back.jpg)
-
-I made these RS-232 adapter boards with Cat-6 (ethernet) sockets, to transfer both the serial data and 5V power to the controller Arduino. They are electrically identical, except for on one I have crossed the Tx and Rx lines on the RS-232 side because it's designed for a straight-through ethernet cable. The male angle headers are (in order) 5V, Gnd, Tx, Rx.
 
 This is how the RS-232 adapter connects to the Teensy's OctoWS2811 Shield.
 
