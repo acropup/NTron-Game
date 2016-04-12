@@ -26,12 +26,10 @@ void explodeAt(uint8_t x, uint8_t y, uint8_t size) {
   }
 }
 
-//Removes explosion from the explosions array, shifts other explosions over
+//Removes explosion from the explosions array, puts last explosion in its place.
 void removeExplosion(uint8_t eid) {
-  numExplosions--;
-  while(eid < numExplosions) {
-    explosions[eid] = explosions[eid+1];
-    eid++;
+  if (eid < --numExplosions) {
+    explosions[eid] = explosions[numExplosions];
   }
 }
 

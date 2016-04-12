@@ -25,11 +25,9 @@ void spawnPowerup(CRGB* leds) {
   int8_t x, y;
   x = random(WIDTH);
   y = random(HEIGHT - 2);
-  if (leds[XY(x, y)] != BGCOLOUR) {
-    return;
+  if (leds[XY(x, y)] == BGCOLOUR) {
+    powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
   }
-  
-  powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
 }
 
 //Spawn howMany powerups
@@ -41,12 +39,9 @@ void spawnPowerups(CRGB* leds, uint8_t howMany) {
 
 //TODO: This is a test function to spawn powerups at specific positions
 void spawnPowerup(CRGB* leds, uint8_t x, uint8_t y) {
-  if(numPowerups >= MAX_POWERUPS) return;
-  if (leds[XY(x, y)] != BGCOLOUR) {
-    return;
+  if(numPowerups < MAX_POWERUPS && leds[XY(x, y)] == BGCOLOUR) {
+    powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
   }
-  
-  powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
 }
 
 void drawPowerups(CRGB* leds) {
@@ -59,19 +54,13 @@ void drawPowerups(CRGB* leds) {
 
 bool hitPowerup(uint8_t x, uint8_t y) {
   uint16_t target = XY(x, y);
-  bool hit = false;
   for (int i = 0; i < numPowerups; i++) {
-    if (hit) {
-      powerups[i-1] = powerups[i];
-    } else if (target == powerups[i].pos) {
-      hit = true;
+    if (target == powerups[i].pos) { //Powerup is at (x,y)
+      powerups[i] = powerups[--numPowerups]; //Unordered remove of powerup i
+      return true;
     }
   }
-  if (hit) {
-    numPowerups--;
-  }
-  
-  return hit;
+  return false;
 }
 
 #endif

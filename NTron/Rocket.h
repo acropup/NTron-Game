@@ -35,12 +35,10 @@ inline Rocket& getRocket(uint8_t rid){
   return rockets[rid];
 }
 
-//Removes rocket from the rockets array, shifts other rockets over
+//Removes rocket from the rockets array, puts last rocket in its place.
 void removeRocket(uint8_t rid) {
-  numRockets--;
-  while(rid < numRockets) {
-    rockets[rid] = rockets[rid+1];
-    rid++;
+  if (rid < --numRockets) {
+    rockets[rid] = rockets[numRockets];
   }
 }
 
