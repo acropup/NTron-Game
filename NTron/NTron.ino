@@ -1,4 +1,4 @@
-#define FASTLED_INTERNAL //Suppresses the FastLED version "warning"
+#define FASTLED_INTERNAL //Suppresses the FastLED version "warning" during compilation
 #define USE_OCTOWS2811
 #include <OctoWS2811.h>
 #include <FastLED.h>
@@ -15,13 +15,33 @@
 CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP + 1];
 
 elapsedMillis timeElapsed;
+int8_t framesUntilReset;
 unsigned long msPerFrame = 150;       //This can be changed real-time to change game speed.
 unsigned long msControllerDelay = 13; //Screen refresh is 7.8ms and Serial response is 3-5ms. Upper bound is 8+5 = 13ms.
 
-
-//int xtest = 12;
 void resetGame() {
+  CRGB p1c = PLAYER1COLOUR;
+  CRGB p2c = PLAYER2COLOUR;
+  CRGB c1 = FENCECOLOUR.lerp8(p1c, 200); //(0, 100, 56)
+  CRGB c2 = FENCECOLOUR.lerp8(p2c, 200); //(199, 15, 171)
+  Serial.print("Player1 colour (r, g, b) = (");
+  Serial.print(c1.r);
+  Serial.print(", ");
+  Serial.print(c1.g);
+  Serial.print(", ");
+  Serial.print(c1.b);
+  Serial.println(")");
+  Serial.print("Player2 colour (r, g, b) = (");
+  Serial.print(c2.r);
+  Serial.print(", ");
+  Serial.print(c2.g);
+  Serial.print(", ");
+  Serial.print(c2.b);
+  Serial.println(")");
+  delay(1000);
+  
   timeElapsed = 0;
+  framesUntilReset = -1;
   memset(leds, 0, WIDTH*HEIGHT*sizeof(CRGB));
   clearExplosions();
   clearPixelTweens();
@@ -30,21 +50,8 @@ void resetGame() {
   clearRockets();
   resetPlayer(getPlayer(0),  3,  3,  1, 0);
   resetPlayer(getPlayer(1), 28, 20, -1, 0);
-
-  /*for(int i = 0; i < 7; i++) {
-    spawnPowerup(leds, 31, 3*i+1);
-    leds[XY(21, 3*i+1)] = FENCECOLOUR;
-    leds[XY(22, 3*i+1)] = FENCECOLOUR;
-    leds[XY(23, 3*i+1)] = FENCECOLOUR;
-    leds[XY(24, 3*i+1)] = FENCECOLOUR;
-  }*/
   
   spawnPowerups(leds, 7);
-  
-  //fireRocket(4, 3, 1, 0);
-  //fireRocket(xtest++, 11, 0, -1);
-  //leds[XY(xtest--, 3)] = FENCECOLOUR;
-  //leds[XY(14, 3)] = FENCECOLOUR;
 }
 
 void setup() {
@@ -52,22 +59,14 @@ void setup() {
   
   TweenIgnoreOOBPixel = &leds[NUM_STRIPS * NUM_LEDS_PER_STRIP]; //Last array element is the out-of-bounds catch-all pixel for XYSafe()
   initSerialController();
-  initPlayer(0, PLAYER1COLOUR);
-  initPlayer(1, PLAYER2COLOUR);
+  initPlayer(0, PLAYER1COLOUR, PLAYER1FENCECOLOUR);
+  initPlayer(1, PLAYER2COLOUR, PLAYER2FENCECOLOUR);
   resetGame();
   // Pin layouts on the teensy 3:
   // OctoWS2811: 2,14,7,8,6,20,21,5
   FastLED.addLeds<OCTOWS2811,RGB>(leds, NUM_LEDS_PER_STRIP);
   FastLED.setBrightness(32);
   FastLED.setDither(0); //This prevents FastLED from doing temporal dithering, which creates noticeable flicker
-
-/*
-  for(int j = 0; j < 22; j++) {
-    fireRocket(j+10, 20-j, 0, -1);
-  }
-  for(int j = 0; j < 20; j++) {
-    leds[XY(30,j)] = FENCECOLOUR;
-  }*/
 }
 
 void processFrame() {
@@ -80,6 +79,8 @@ void processFrame() {
   if(checkPlayerCollision()){
     Player& p = getPlayer(0);
     explodeAt(p.x, p.y, 2);
+    killPlayer(p);
+    killPlayer(getPlayer(1));
     Serial.println("Players collided!");
   }
   
@@ -95,27 +96,25 @@ void processFrame() {
       spawnPowerups(leds, 4);
     }
     else {
-      p.isAlive = false;
+      killPlayer(p);
       explodeAt(p.x, p.y, 1);
       Serial.print("Player ");
       Serial.print(pid+1);
       Serial.println(" collided!");
-      if(pid == 0) {
-        delay(1000);
-        resetGame();
-        return;
+      if(framesUntilReset == -1) {
+        framesUntilReset = 10;
       }
     }
   }
   drawPowerups(leds);
   drawExplosions(leds);
-  //TODO, need to check player-player collisions, if(p1.x == p2.x && p1.y == p2.y)
   updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
 }
 
-bool askController = true;
 
 void loop() {
+  static bool askController = true;
+  
   if (timeElapsed >= msPerFrame - msControllerDelay) {
     //Ask controller for button status in advance of the end of frame, so controller has time to respond
     if (askController) {
@@ -137,18 +136,16 @@ void loop() {
         for (int8_t x = WIDTH-1; x >= 0; x--) {
           leds[XY(x, y)] = randColour;
         }
+    #ifdef DEBUG
+        Serial.print("*****Did not receive button states within 10ms!*****");
       }
-      #ifdef DEBUG
-        if (timeLeft == -1) {
-         Serial.print("*****Did not receive button states within 10ms!*****");
-        }
-        else {
-          Serial.print("Received button states within ");
-          Serial.print(10 - timeLeft);
-          Serial.print("ms. Button states: ");
-          Serial.println(btnStates, BIN);
-        }
-      #endif
+      else {
+        Serial.print("Received button states within ");
+        Serial.print(10 - timeLeft);
+        Serial.print("ms. Button states: ");
+        Serial.println(btnStates, BIN);
+    #endif
+      }
       
       //Take all new button states and apply to each player
       setPlayerButtonState(getPlayer(0).buttons, getPlayer(1).buttons);
@@ -168,6 +165,14 @@ void loop() {
         Serial.print("Rocket: ");
         Serial.println(btns.Rocket);
       #endif
+
+      //Game reset is delayed for a number of frames after player death
+      if(framesUntilReset > -1) {
+        if (!framesUntilReset--) {
+          resetGame();
+          return;
+        }
+      }
 
       processFrame();
     }

@@ -33,19 +33,25 @@ void resetPlayer(Player& p, int8_t posX, int8_t posY, int8_t dx, int8_t dy){
   p.dy = dy;
 }
 
-Player& initPlayer(uint8_t pid, CRGB colour) {
+Player& initPlayer(uint8_t pid, CRGB playerColour, CRGB fenceColour) {
   Player &p = players[pid];
   p = { 0, true, 0, 0, 1, 0, 0, 0, 0 };
   
   //TODO: Figure out why this is necessary to set the colours. Doesn't seem to work in struct initializer.
-  p.colour = colour;
-  p.fenceColour = FENCECOLOUR.lerp8(colour, 64);
+  p.colour = playerColour;
+  p.fenceColour = fenceColour;
   
   return players[pid];
 }
 
 inline Player& getPlayer(uint8_t pid){
   return players[pid];
+}
+
+void killPlayer(Player& p) {
+  p.isAlive = false;
+  p.dx = 0;
+  p.dy = 0;
 }
 
 /*Checks if player has pressed the isFencing button,
@@ -178,6 +184,9 @@ void applyPowerup(Player& p) {
 bool checkPlayerCollision() {
   Player& p1 = getPlayer(0);
   Player& p2 = getPlayer(1);
+  
+  if(!p1.isAlive || !p2.isAlive) return false;
+  
   if(p1.x == p2.x && p1.y == p2.y){
     return true;
   }

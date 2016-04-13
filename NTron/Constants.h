@@ -12,7 +12,9 @@
 #define FENCECOLOUR      ((CRGB)CRGB::Blue)
 #define BGCOLOUR         ((CRGB)CRGB::Black) //Background colour
 #define PLAYER1COLOUR    ((CRGB)CRGB::Green)
+#define PLAYER1FENCECOLOUR    (CRGB(0, 100, 100)) //((CRGB)CRGB::Cyan) //(CRGB(0, 100, 56))
 #define PLAYER2COLOUR    ((CRGB)CRGB::DeepPink)
+#define PLAYER2FENCECOLOUR    (CRGB(100, 0, 100)) //((CRGB)CRGB::Magenta) //(CRGB(199, 15, 171))
 #define ROCKETCOLOUR     ((CRGB)CRGB::Orange)
 #define ROCKETFADECOLOUR ((CRGB)CRGB::Red)
 
