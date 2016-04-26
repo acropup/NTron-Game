@@ -52,7 +52,8 @@ void drawPowerups(CRGB* leds) {
   }
 }
 
-bool hitPowerup(uint8_t x, uint8_t y) {
+// Checks if there is a powerup at (x,y), returns true and removes it if there is one.
+bool tryHitPowerup(uint8_t x, uint8_t y) {
   uint16_t target = XY(x, y);
   for (int i = 0; i < numPowerups; i++) {
     if (target == powerups[i].pos) { //Powerup is at (x,y)

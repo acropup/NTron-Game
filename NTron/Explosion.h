@@ -90,25 +90,28 @@ void drawExplosion(CRGB leds[], uint8_t eid) {
       e.age++;
       break;
     }
+    case 6: //-dy T-shaped small explosion
+    case 7: //-dx T-shaped small explosion
+    case 9: //+dx T-shaped small explosion
+    case 10://+dy T-shaped small explosion
+    {
+      //T-shaped small explosion, computed size = 8 + r.dx + 2*r.dy
+      //Example, for case 9 (rocket was travelling to the right):
+      //       *
+      //       * *
+      //       *
+      addPixelTween({&leds[XY(x,y)], CRGB::White, BGCOLOUR});                               //Center
+      if(e.size != 9  && x > 0) addPixelTween({&leds[XY(x-1,y)], CRGB::Yellow, BGCOLOUR }); //Left
+      if(e.size != 7  && x < 31)addPixelTween({&leds[XY(x+1,y)], CRGB::Yellow, BGCOLOUR }); //Right
+      if(e.size != 10 && y > 0) addPixelTween({&leds[XY(x,y-1)], CRGB::Yellow, BGCOLOUR }); //Up
+      if(e.size != 6  && y < 23)addPixelTween({&leds[XY(x,y+1)], CRGB::Yellow, BGCOLOUR }); //Down
+      removeExplosion(eid);
+      break;
+    }
     default:
       removeExplosion(eid);
   }
 }
-/*
-*       *
-*     * * *
-*   * * * * *
-*     * * *
-*       *
-*
-for(uint8_t j = -2; j < 2; j++) {
-  if(y+j >= 24) continue;
-  for(int i = -2+abs(j); i < 2-abs(j); i++) {
-    if(x+i >= 32) continue;
-    addPixelTween({&leds[XY(x+i,y+j)], CRGB::Yellow, CRGB::Red });
-  }
-}
-*/
 
 void drawExplosions(CRGB leds[]) {
   int i = numExplosions;

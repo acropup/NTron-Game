@@ -1,3 +1,7 @@
+//TODO: Figure out why plugging in the controller sometimes takes a long time to be recognized
+//TODO: Move Powerbar flash into the bottom (Powerbar) row, and extend playfield to 23 pixels high (currently 22).
+//TODO: Clean up Rocket collision detection code. Probably doesn't need 2 functions.
+
 #define FASTLED_INTERNAL //Suppresses the FastLED version "warning" during compilation
 #define USE_OCTOWS2811
 #include <OctoWS2811.h>
@@ -49,8 +53,8 @@ void resetGame() {
   clearPowerups();
   clearRockets();
   resetPlayer(getPlayer(0),  3,  3,  1, 0);
-  resetPlayer(getPlayer(1), 28, 20, -1, 0);
-  
+  resetPlayer(getPlayer(1), 28, 18, -1, 0);
+
   spawnPowerups(leds, 7);
 }
 
@@ -72,6 +76,7 @@ void setup() {
 void processFrame() {
   //Move players, lay fence, update power, fire rockets
   updatePlayers(leds);
+  
   //Move rockets and check for collisions
   updateRockets(leds);
 
@@ -90,7 +95,7 @@ void processFrame() {
     if(leds[XY(p.x, p.y)] == BGCOLOUR) { //Player is moving into an empty pixel
       addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
     }
-    else if (hitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
+    else if (tryHitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
       addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
       applyPowerup(p);
       spawnPowerups(leds, 4);
@@ -148,7 +153,14 @@ void loop() {
       }
       
       //Take all new button states and apply to each player
-      setPlayerButtonState(getPlayer(0).buttons, getPlayer(1).buttons);
+      Player& p1 = getPlayer(0);
+      Player& p2 = getPlayer(1);
+      setPlayerButtonState(p1.buttons, p2.buttons);
+      
+      //Clear button states if player is dead
+      if(!p1.isAlive) p1.buttons.raw = 0;
+      if(!p2.isAlive) p2.buttons.raw = 0;
+      
       //Reset to ask again next frame
       askController = true;
 

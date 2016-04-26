@@ -54,9 +54,9 @@ void killPlayer(Player& p) {
   p.dy = 0;
 }
 
-/*Checks if player has pressed the isFencing button,
-  and if they have enough power to lay a fence.
-  If so, consumes power and returns true. */
+// Checks if player has pressed the isFencing button,
+// and if they have enough power to lay a fence.
+// If so, consumes power and returns true.
 bool isPlayerFencing(Player& p){
   if(p.buttons.Fence && p.power >= FENCE_COST) {
     p.power-=FENCE_COST;
@@ -65,8 +65,8 @@ bool isPlayerFencing(Player& p){
   return false;
 }
 
-/*Lays a fence if Player is holding down the isFencing button, 
-  and they have enough power to afford it. */
+// Lays a fence if Player is holding down the isFencing button, 
+// and they have enough power to afford it.
 void maybeLayFence(CRGB leds[], Player& p) {
   if(isPlayerFencing(p)) {
     addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.fenceColour));
@@ -119,8 +119,8 @@ void updatePlayerDirection(Player& p){
   }
 }
 
-/* Moves position (x,y) by amount (dx,dy),
-   and wraps around WIDTH,HEIGHT dimensions automatically. */
+// Moves position (x,y) by amount (dx,dy),
+// and wraps around WIDTH,HEIGHT dimensions automatically.
 inline void moveAndWrap(int8_t& x, int8_t& y, int8_t dx, int8_t dy) {
   x += dx;
   y += dy;
@@ -131,7 +131,7 @@ inline void moveAndWrap(int8_t& x, int8_t& y, int8_t dx, int8_t dy) {
   if(y == HEIGHT-2) y = 0;
 }
 
-/* Updates player position by moving player in direction dx or dy. */
+// Updates player position by moving player in direction dx or dy.
 void updatePlayerPosition(Player& p){
   moveAndWrap(p.x, p.y, p.dx, p.dy);
 }
@@ -149,7 +149,7 @@ void moveRandom(uint8_t pid) {
   }
 }
 
-//Call this once per frame before checking if any players have collided
+// Call this once per frame before checking if any players have collided
 void updatePlayers(CRGB leds[]){
   //Player power regenerates slowly over time
   uint8_t regenAmt = 0;
@@ -179,8 +179,8 @@ void applyPowerup(Player& p) {
   if(p.power < POWERUP_VALUE) p.power = 255;
 }
 
-/*To be called after the players are moved. Checks for player-to-player collisions,
-  returns true if collided, in which case both players should die. */
+// To be called after the players are moved. Checks for player-to-player collisions,
+// returns true if collided, in which case both players should die.
 bool checkPlayerCollision() {
   Player& p1 = getPlayer(0);
   Player& p2 = getPlayer(1);
@@ -199,6 +199,33 @@ bool checkPlayerCollision() {
     }
   }
   return false;
+}
+
+// Tries to hit player at coordinates (x, y). Kills player if shootToKill is true. Return values are:
+// 0 if no player is hit.
+// 1 if a player is hit at (x, y). The player is automatically killed.
+// 2 if no player is there, but a player was there last frame (player is tweening out of that frame).
+uint8_t tryHitPlayer(uint8_t x, uint8_t y, bool shootToKill) {
+  uint8_t hit = 0;
+  for (int i = 0; i < NUMPLAYERS; i++) {
+    Player& p = getPlayer(i);
+    int8_t px = p.x;
+    int8_t py = p.y;
+    if (px == x && py == y) {
+      if (shootToKill) {
+        killPlayer(p);
+      }
+      hit = 1;
+    }
+    else if(hit == 0) {
+      moveAndWrap(px, py, -p.dx, -p.dy);
+      if (px == x && py == y) {
+        hit = 2; //Near miss - player was at this coord last frame
+      }
+    }
+  }
+  
+  return hit;
 }
 
 #endif
