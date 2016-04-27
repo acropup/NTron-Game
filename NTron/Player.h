@@ -120,33 +120,20 @@ void updatePlayerDirection(Player& p){
 }
 
 // Moves position (x,y) by amount (dx,dy),
-// and wraps around WIDTH,HEIGHT dimensions automatically.
+// and wraps around WIDTH,PLAYABLEHEIGHT dimensions automatically.
 inline void moveAndWrap(int8_t& x, int8_t& y, int8_t dx, int8_t dy) {
   x += dx;
   y += dy;
   //Bounds check and wrap around the screen
   if(x == -1)       x = WIDTH-1;
-  if(y == -1)       y = HEIGHT-3;
+  if(y == -1)       y = PLAYABLEHEIGHT-1;
   if(x == WIDTH)    x = 0;
-  if(y == HEIGHT-2) y = 0;
+  if(y == PLAYABLEHEIGHT) y = 0;
 }
 
 // Updates player position by moving player in direction dx or dy.
 void updatePlayerPosition(Player& p){
   moveAndWrap(p.x, p.y, p.dx, p.dy);
-}
-
-void moveRandom(uint8_t pid) {
-  players[pid].x = random(WIDTH);
-  players[pid].y = random(HEIGHT - 2); //height minus bottom bar
-  players[pid].dx = 0;
-  players[pid].dy = 0;
-  switch(random(4)) {
-    case 0: players[pid].dx = 1; break;
-    case 1: players[pid].dx = -1; break;
-    case 2: players[pid].dy = 1; break;
-    case 3: players[pid].dy = -1; break;
-  }
 }
 
 // Call this once per frame before checking if any players have collided

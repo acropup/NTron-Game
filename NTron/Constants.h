@@ -8,6 +8,7 @@
 
 #define WIDTH  32
 #define HEIGHT 24
+#define PLAYABLEHEIGHT   (HEIGHT-1)          //HEIGHT minus one row, occupied by the PowerBar
 
 #define FENCECOLOUR      ((CRGB)CRGB::Blue)
 #define BGCOLOUR         ((CRGB)CRGB::Black) //Background colour

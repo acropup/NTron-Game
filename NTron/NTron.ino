@@ -22,28 +22,9 @@ elapsedMillis timeElapsed;
 int8_t framesUntilReset;
 unsigned long msPerFrame = 150;       //This can be changed real-time to change game speed.
 unsigned long msControllerDelay = 13; //Screen refresh is 7.8ms and Serial response is 3-5ms. Upper bound is 8+5 = 13ms.
+uint8_t screenBrightness = 32;
 
 void resetGame() {
-  CRGB p1c = PLAYER1COLOUR;
-  CRGB p2c = PLAYER2COLOUR;
-  CRGB c1 = FENCECOLOUR.lerp8(p1c, 200); //(0, 100, 56)
-  CRGB c2 = FENCECOLOUR.lerp8(p2c, 200); //(199, 15, 171)
-  Serial.print("Player1 colour (r, g, b) = (");
-  Serial.print(c1.r);
-  Serial.print(", ");
-  Serial.print(c1.g);
-  Serial.print(", ");
-  Serial.print(c1.b);
-  Serial.println(")");
-  Serial.print("Player2 colour (r, g, b) = (");
-  Serial.print(c2.r);
-  Serial.print(", ");
-  Serial.print(c2.g);
-  Serial.print(", ");
-  Serial.print(c2.b);
-  Serial.println(")");
-  delay(1000);
-  
   timeElapsed = 0;
   framesUntilReset = -1;
   memset(leds, 0, WIDTH*HEIGHT*sizeof(CRGB));
@@ -69,7 +50,7 @@ void setup() {
   // Pin layouts on the teensy 3:
   // OctoWS2811: 2,14,7,8,6,20,21,5
   FastLED.addLeds<OCTOWS2811,RGB>(leds, NUM_LEDS_PER_STRIP);
-  FastLED.setBrightness(32);
+  FastLED.setBrightness(screenBrightness);
   FastLED.setDither(0); //This prevents FastLED from doing temporal dithering, which creates noticeable flicker
 }
 
@@ -135,8 +116,8 @@ void loop() {
       int timeLeft = waitForButtonStatus(10);
       
       if (timeLeft == -1) { //Failed to receive button status before the timeout
-        //Make the error visible on screen, as a randomly coloured horizontal bar
-        uint8_t y = HEIGHT - 2;
+        //Make the error visible on screen, as a randomly coloured horizontal bar over the PowerBar area
+        uint8_t y = HEIGHT - 1;
         CRGB randColour = CHSV((uint8_t)random(255), ~0, ~0);
         for (int8_t x = WIDTH-1; x >= 0; x--) {
           leds[XY(x, y)] = randColour;
@@ -165,17 +146,7 @@ void loop() {
       askController = true;
 
       #ifdef DEBUG
-        PlayerButtonState btns = getPlayer(0).buttons;
-        Serial.print("Player 1 button state: ");
-        Serial.println(btns.raw, BIN);
-        Serial.print("Left: ");
-        Serial.println(btns.Left);
-        Serial.print("Right: ");
-        Serial.println(btns.Right);
-        Serial.print("Fence: ");
-        Serial.println(btns.Fence);
-        Serial.print("Rocket: ");
-        Serial.println(btns.Rocket);
+        debugPrintButtonState(0, getPlayer(0).buttons);
       #endif
 
       //Game reset is delayed for a number of frames after player death

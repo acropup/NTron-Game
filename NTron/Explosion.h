@@ -21,7 +21,7 @@ void clearExplosions() {
 }
 
 void explodeAt(uint8_t x, uint8_t y, uint8_t size) {
-  if(numExplosions < MAX_EXPLOSIONS && x < WIDTH && y < HEIGHT) {
+  if(numExplosions < MAX_EXPLOSIONS && x < WIDTH && y < PLAYABLEHEIGHT) {
     explosions[numExplosions++] = (Explosion) { x, y, size, 0 };
   }
 }

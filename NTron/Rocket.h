@@ -53,7 +53,7 @@ void removeRocket(uint8_t rid) {
 
 //Returns true if rocket ran out of bounds
 inline bool isRocketOOB(Rocket& r) {
-  return r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= HEIGHT - 2;
+  return r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= PLAYABLEHEIGHT;
 }
 
 inline void halfStepRocket(Rocket& r) {

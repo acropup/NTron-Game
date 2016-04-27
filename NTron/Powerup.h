@@ -24,7 +24,7 @@ void spawnPowerup(CRGB* leds) {
   
   int8_t x, y;
   x = random(WIDTH);
-  y = random(HEIGHT - 2);
+  y = random(PLAYABLEHEIGHT);
   if (leds[XY(x, y)] == BGCOLOUR) {
     powerups[numPowerups++] = {XY(x, y), (uint8_t)random(255)};
   }

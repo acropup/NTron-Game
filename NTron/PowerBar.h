@@ -5,9 +5,12 @@
 #include "Constants.h"
 #include "PixelTweening.h"
 
+// PowerBar usese the bottom row of the screen, shows Player 1's power on left half,
+// and Player 2's power on right half. Flashes a notification over the Player's
+// PowerBar area if the Player picks up a Powerup.
+
 static const uint8_t yBottom = HEIGHT - 1;
 
-//uint8_t offset = 0;
 uint8_t oldLeft = 0;
 uint8_t oldRight = 0;
 
@@ -54,28 +57,45 @@ void clearRowPixels(CRGB* leds, uint8_t yRow, uint8_t xl, uint8_t xr){
   }
 }
 
+//Fade a row of pixels toward black, from column xl to column xr
+void fadeRowPixels(CRGB* leds, uint8_t yRow, uint8_t xl, uint8_t xr){
+  while(xl <= xr) {
+//    Serial.print(xl);
+//    Serial.print(" ");
+//    Serial.println(xr);
+    CRGB c = leds[XY(xl, yRow)];
+    if (c != BGCOLOUR) {
+      c.r *= 0.6;
+      c.g *= 0.6;
+      c.b *= 0.6;
+      addPixelTween(tweenPixelTo(leds[XY(xl, yRow)], c));
+    }
+    xl++;
+  }
+}
+
 //Draw the power level pixels
 void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
   //TODO: optimize these functions based on oldLeft and oldRight values
   uint8_t xl = drawLeftPowerBar(leds, leftPower);
   uint8_t xr = drawRightPowerBar(leds, rightPower);
-  //Make sure the remaining pixels are black
-  clearRowPixels(leds, yBottom, xl, xr);
 
   //If power increase is significant on left or right side, player got a powerup
   bool lPowerup = (leftPower > oldLeft && leftPower - oldLeft > 8);
   bool rPowerup = (rightPower > oldRight && rightPower - oldRight > 8);
-  uint8_t y = yBottom - 1;
   if(lPowerup) {
-    for (int8_t x = WIDTH/2-1; x >= 0; x--) {
-      leds[XY(x, y)] = CRGB::White;
+    for (int8_t x = WIDTH/2-1; x >= xl; x--) {
+      leds[XY(x, yBottom)] = PLAYER1COLOUR;
     }
   }
   if(rPowerup) {
-    for (int8_t x = WIDTH/2; x < WIDTH; x++) {
-      leds[XY(x, y)] = CRGB::White;
+    for (int8_t x = WIDTH/2; x < xr; x++) {
+      leds[XY(x, yBottom)] = PLAYER2COLOUR;
     }
   }
+  
+  //Fade the flashing pixels to black
+  fadeRowPixels(leds, yBottom, xl, xr);
 
   /*
   //Constant light wave
@@ -86,6 +106,7 @@ void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
   }
 */
   //If edge LEDs are off on this row, then all LEDs are off
+  /*
   if(leds[XY(0, y)].r || leds[XY(WIDTH-1, y)].r) {
     //Fade to black
     for (uint8_t x = 0; x < WIDTH; x++) {
@@ -95,6 +116,7 @@ void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
       }
     }
   }
+  */
   oldLeft  = leftPower;
   oldRight = rightPower;
 }

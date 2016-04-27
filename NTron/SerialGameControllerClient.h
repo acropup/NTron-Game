@@ -83,4 +83,19 @@ unsigned long measureControllerDelay() {
   return avg;
 }
 
+void debugPrintButtonState(uint8_t playerNum, PlayerButtonState btns) {
+  Serial.print("Player ");
+  Serial.print(playerNum);
+  Serial.print(" button state: ");
+  Serial.println(btns.raw, BIN);
+  Serial.print("Left: ");
+  Serial.println(btns.Left);
+  Serial.print("Right: ");
+  Serial.println(btns.Right);
+  Serial.print("Fence: ");
+  Serial.println(btns.Fence);
+  Serial.print("Rocket: ");
+  Serial.println(btns.Rocket);
+}
+
 #endif
