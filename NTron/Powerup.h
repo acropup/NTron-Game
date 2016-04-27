@@ -44,6 +44,7 @@ void spawnPowerup(CRGB* leds, uint8_t x, uint8_t y) {
   }
 }
 
+// Draw all powerups for the frame.
 void drawPowerups(CRGB* leds) {
   for (int i = 0; i < numPowerups; i++) {
     powerups[i].hue += POWERUP_HUE_SPEED;
@@ -52,7 +53,7 @@ void drawPowerups(CRGB* leds) {
   }
 }
 
-// Checks if there is a powerup at (x,y), returns true and removes it if there is one.
+// Checks if there is a powerup at (x,y); if there is one, removes it and returns true.
 bool tryHitPowerup(uint8_t x, uint8_t y) {
   uint16_t target = XY(x, y);
   for (int i = 0; i < numPowerups; i++) {

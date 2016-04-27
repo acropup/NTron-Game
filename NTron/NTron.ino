@@ -1,6 +1,4 @@
 //TODO: Figure out why plugging in the controller sometimes takes a long time to be recognized
-//TODO: Move Powerbar flash into the bottom (Powerbar) row, and extend playfield to 23 pixels high (currently 22).
-//TODO: Clean up Rocket collision detection code. Probably doesn't need 2 functions.
 
 #define FASTLED_INTERNAL //Suppresses the FastLED version "warning" during compilation
 #define USE_OCTOWS2811
@@ -36,7 +34,7 @@ void resetGame() {
   resetPlayer(getPlayer(0),  3,  3,  1, 0);
   resetPlayer(getPlayer(1), 28, 18, -1, 0);
 
-  spawnPowerups(leds, 7);
+  spawnPowerups(leds, NUM_POWERUP_INIT);
 }
 
 void setup() {
@@ -61,32 +59,26 @@ void processFrame() {
   //Move rockets and check for collisions
   updateRockets(leds);
 
+  Player& p1 = getPlayer(0);
+  Player& p2 = getPlayer(1);
   //Check inter-player collision
-  if(checkPlayerCollision()){
-    Player& p = getPlayer(0);
-    explodeAt(p.x, p.y, 2);
-    killPlayer(p);
-    killPlayer(getPlayer(1));
+  if(checkPlayerToPlayerCollision()){
+    explodeAt(p1.x, p1.y, 2);
+    killPlayer(p1);
+    killPlayer(p2);
     Serial.println("Players collided!");
   }
   
-  //Check for collisions
+  //Check for player collisions
   for(int pid = 0; pid < NUMPLAYERS; pid++) {
     Player& p = getPlayer(pid);
-    if(leds[XY(p.x, p.y)] == BGCOLOUR) { //Player is moving into an empty pixel
-      addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
-    }
-    else if (tryHitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
-      addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
-      applyPowerup(p);
-      spawnPowerups(leds, 4);
-    }
-    else {
+    if (checkPlayerCollision(leds, p)) {
       killPlayer(p);
       explodeAt(p.x, p.y, 1);
       Serial.print("Player ");
       Serial.print(pid+1);
       Serial.println(" collided!");
+      //Begin countdown to reset the game
       if(framesUntilReset == -1) {
         framesUntilReset = 10;
       }
@@ -94,12 +86,12 @@ void processFrame() {
   }
   drawPowerups(leds);
   drawExplosions(leds);
-  updatePowerBar(leds, getPlayer(0).power, getPlayer(1).power);
+  updatePowerBar(leds, p1.power, p2.power);
 }
 
 
 void loop() {
-  static bool askController = true;
+  static bool askController = true; //static = local persistent variable
   
   if (timeElapsed >= msPerFrame - msControllerDelay) {
     //Ask controller for button status in advance of the end of frame, so controller has time to respond
@@ -146,7 +138,7 @@ void loop() {
       askController = true;
 
       #ifdef DEBUG
-        debugPrintButtonState(0, getPlayer(0).buttons);
+        debugPrintButtonState(1, p1.buttons);
       #endif
 
       //Game reset is delayed for a number of frames after player death

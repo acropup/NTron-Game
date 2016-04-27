@@ -56,34 +56,6 @@ inline bool isRocketOOB(Rocket& r) {
   return r.x < 0 || r.x >= WIDTH || r.y < 0 || r.y >= PLAYABLEHEIGHT;
 }
 
-inline void halfStepRocket(Rocket& r) {
-  r.x += r.dx;
-  r.y += r.dy;
-}
-
-// Moves Rocket up to numSteps pixels forward and checks for collisions along the way.
-// Returns CollisionState.NoCollision if no collision,
-//         CollisionState.Collision   if collision detected,
-//         CollisionState.OutOfBounds if out-of bounds.
-// Reference variable numSteps returns with the number of steps remaining,
-// so the calling function knows at which point the Rocket collided.
-CollisionState stepRocket(CRGB leds[], Rocket& r, uint8_t& numSteps) {
-  //Test for direct hit with Players before moving the rocket (Players move before Rockets, but )
-  if (r.age > 1 && tryHitPlayer(r.x, r.y, false) == 1) return Collision;
-  while (numSteps > 0) {
-    numSteps--;
-    r.x += r.dx;
-    r.y += r.dy;
-    if (isRocketOOB(r)) return OutOfBounds;
-    //Check for collision with next pixel
-    if (leds[XYsafe(r.x, r.y)] != BGCOLOUR || //Rocket is moving into an occupied pixel (collision!)
-        tryHitPlayer(r.x, r.y, false) == 1) { //Test for direct hit with Players
-      return Collision;
-    }
-  }
-  return NoCollision;
-}
-
 void drawRocket(CRGB leds[], Rocket& r) {
   int8_t x1, x2, x3, x4, x5;
   int8_t y1, y2, y3, y4, y5;
@@ -169,9 +141,32 @@ void tripleRocket(Rocket& r) {
   }
 }
 
+// Moves Rocket up to numSteps pixels forward and checks for collisions along the way.
+// Returns CollisionState.NoCollision if no collision,
+//         CollisionState.Collision   if collision detected,
+//         CollisionState.OutOfBounds if out-of bounds.
+// Reference variable numSteps returns with the number of steps remaining,
+// so the calling function knows at which point the Rocket collided.
+CollisionState stepRocket(CRGB leds[], Rocket& r, uint8_t& numSteps) {
+  //Test for direct hit with Players before moving the rocket (Players move before Rockets, but )
+  if (r.age > 1 && tryHitPlayer(r.x, r.y, false) == 1) return Collision;
+  while (numSteps > 0) {
+    numSteps--;
+    r.x += r.dx;
+    r.y += r.dy;
+    if (isRocketOOB(r)) return OutOfBounds;
+    //Check for collision with next pixel
+    if (leds[XYsafe(r.x, r.y)] != BGCOLOUR || //Rocket is moving into an occupied pixel (collision!)
+        tryHitPlayer(r.x, r.y, false) == 1) { //Test for direct hit with Players
+      return Collision;
+    }
+  }
+  return NoCollision;
+}
+
 //Upon moving a Rocket, check if it collided with a Powerup or the trail of a Player.
 //Changes the collisionState in response to what it hit and whether that should make it explode.
-void processCollision(CRGB leds[], Rocket& r, CollisionState& collisionState, bool& hitPowerup) {
+void checkCollision(CRGB leds[], Rocket& r, CollisionState& collisionState, bool& hitPowerup) {
   if (collisionState == Collision) { //Collision
     //If Rocket hits Powerup, it turns into a triple-rocket!
     if (tryHitPowerup(r.x, r.y)) {
@@ -198,10 +193,10 @@ void updateRockets(CRGB leds[]) {
     uint8_t numSteps = 2; //Rockets move 2 pixels per frame
     do {
       collisionState = stepRocket(leds, r, numSteps);
-      processCollision(leds, r, collisionState, hitPowerup);
+      checkCollision(leds, r, collisionState, hitPowerup);
     } while (numSteps && collisionState == NoCollision);
 
-    //Check to see if we should powerup the rocket
+    //Check to see if we should powerup the Rocket
     if(hitPowerup && collisionState != OutOfBounds) {
       tripleRocket(r);
     }
@@ -235,7 +230,7 @@ void updateRockets(CRGB leds[]) {
       }
       case OutOfBounds:
       {
-        //Clear the Powerup pixel (if there was one)
+        //Clear the Powerup pixel (if there was one) or the frontmost of the Rocket trail
         addPixelTween(tweenPixelTo(leds[XY(r.x-r.dx, r.y-r.dy)], BGCOLOUR));
         clearRocketTrail(leds, r);
         removeRocket(rid);
@@ -243,14 +238,6 @@ void updateRockets(CRGB leds[]) {
       }
     }
   }
-}
-
-bool isRocketAt(int8_t x, int8_t y) {
-  for (int i = 0; i < numRockets; i++) {
-    if (rockets[i].x == x && rockets[i].y == y)
-      return true;
-  }
-  return false;
 }
 
 #endif

@@ -60,9 +60,6 @@ void clearRowPixels(CRGB* leds, uint8_t yRow, uint8_t xl, uint8_t xr){
 //Fade a row of pixels toward black, from column xl to column xr
 void fadeRowPixels(CRGB* leds, uint8_t yRow, uint8_t xl, uint8_t xr){
   while(xl <= xr) {
-//    Serial.print(xl);
-//    Serial.print(" ");
-//    Serial.println(xr);
     CRGB c = leds[XY(xl, yRow)];
     if (c != BGCOLOUR) {
       c.r *= 0.6;
@@ -97,26 +94,6 @@ void updatePowerBar(CRGB* leds, uint8_t leftPower, uint8_t rightPower) {
   //Fade the flashing pixels to black
   fadeRowPixels(leds, yBottom, xl, xr);
 
-  /*
-  //Constant light wave
-  offset -= 20;
-  for (uint8_t x = 0; x < WIDTH; x++) {
-    addPixelTween(tweenPixelTo(leds[XY(x, y)], 
-      CRGBgrayscale((sin(((x*19+offset)/128.0) * 3.14159265) * 128) + 128)));
-  }
-*/
-  //If edge LEDs are off on this row, then all LEDs are off
-  /*
-  if(leds[XY(0, y)].r || leds[XY(WIDTH-1, y)].r) {
-    //Fade to black
-    for (uint8_t x = 0; x < WIDTH; x++) {
-      uint8_t brightness = leds[XY(x, y)].r;
-      if(brightness) {
-        addPixelTween(tweenPixelTo(leds[XY(x, y)], CRGBgrayscale(brightness/1.5)));
-      }
-    }
-  }
-  */
   oldLeft  = leftPower;
   oldRight = rightPower;
 }

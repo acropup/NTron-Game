@@ -125,10 +125,10 @@ inline void moveAndWrap(int8_t& x, int8_t& y, int8_t dx, int8_t dy) {
   x += dx;
   y += dy;
   //Bounds check and wrap around the screen
-  if(x == -1)       x = WIDTH-1;
-  if(y == -1)       y = PLAYABLEHEIGHT-1;
-  if(x == WIDTH)    x = 0;
   if(y == PLAYABLEHEIGHT) y = 0;
+  else if(x == WIDTH)     x = 0;
+  else if(y == -1)        y = PLAYABLEHEIGHT-1;
+  else if(x == -1)        x = WIDTH-1;
 }
 
 // Updates player position by moving player in direction dx or dy.
@@ -168,7 +168,7 @@ void applyPowerup(Player& p) {
 
 // To be called after the players are moved. Checks for player-to-player collisions,
 // returns true if collided, in which case both players should die.
-bool checkPlayerCollision() {
+bool checkPlayerToPlayerCollision() {
   Player& p1 = getPlayer(0);
   Player& p2 = getPlayer(1);
   
@@ -177,9 +177,11 @@ bool checkPlayerCollision() {
   if(p1.x == p2.x && p1.y == p2.y){
     return true;
   }
-  if(p1.dx == -p2.dx && p1.dy == -p2.dy) { //Players are moving in opposite directions
+  //If Players are moving in opposite directions
+  if(p1.dx == -p2.dx && p1.dy == -p2.dy) {
     int8_t x1 = p1.x;
     int8_t y1 = p1.y;
+    //Move p1 back a step and test again
     moveAndWrap(x1, y1, -p1.dx, -p1.dy);
     if(x1 == p2.x && y1 == p2.y) {
       return true;
@@ -188,6 +190,25 @@ bool checkPlayerCollision() {
   return false;
 }
 
+// To be called after the players are moved. Checks for player-to-environment collisions,
+// returns true if collided, in which case Player p should die.
+// If Player collided with a Powerup, Player receives the Powerup bonus, and new Powerups
+// are spawned onto the field.
+bool checkPlayerCollision(CRGB leds[], Player& p) {
+  if(leds[XY(p.x, p.y)] == BGCOLOUR) { //Player is moving into an empty pixel
+    addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
+  }
+  else if (tryHitPowerup(p.x, p.y)) { //Player is moving into a pixel with a powerup
+    addPixelTween(tweenPixelTo(leds[XY(p.x, p.y)], p.colour));
+    applyPowerup(p);
+    spawnPowerups(leds, NUM_POWERUP_REGROWTH);
+  }
+  else {
+    return true; //Collided
+  }
+  return false;
+}
+    
 // Tries to hit player at coordinates (x, y). Kills player if shootToKill is true. Return values are:
 // 0 if no player is hit.
 // 1 if a player is hit at (x, y). The player is automatically killed.
@@ -196,6 +217,7 @@ uint8_t tryHitPlayer(uint8_t x, uint8_t y, bool shootToKill) {
   uint8_t hit = 0;
   for (int i = 0; i < NUMPLAYERS; i++) {
     Player& p = getPlayer(i);
+    if (!p.isAlive) continue;
     int8_t px = p.x;
     int8_t py = p.y;
     if (px == x && py == y) {

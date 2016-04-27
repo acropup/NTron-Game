@@ -26,6 +26,10 @@
 #define MAX_ROCKETS    32
 #define MAX_EXPLOSIONS 32
 
+//Number of powerups that start in play, and rate that they reproduce
+#define NUM_POWERUP_INIT     7
+#define NUM_POWERUP_REGROWTH 3
+
 //Power and powerup constants. Power storage is in uint8_t, so max value per player is 255
 #define FENCE_COST        2
 #define ROCKET_COST      16
