@@ -1,6 +1,10 @@
 #ifndef SERIALGAMECONTROLLERCLIENT_H
 #define SERIALGAMECONTROLLERCLIENT_H
 
+const int bytesPerQuery = 4; //Header byte, Speed byte, Brightness byte, Player Button States
+const uint8_t pixelTweenBit = 1;
+const uint8_t headerMask = 0b11001100; //Use this mask because it is an invalid PlayerButtonState
+
 //Warning: bit-field behaviour is largely dependent on platform implementation.
 //This works with the Arduino IDE and Teensy, but might not elsewhere.
 union PlayerButtonState {
@@ -14,6 +18,9 @@ union PlayerButtonState {
 };
 
 uint8_t btnStates;
+uint8_t headerByte;
+uint8_t speedByte;
+uint8_t brightnessByte;
 
 //Call this in program setup
 void initSerialController() {
@@ -28,23 +35,35 @@ void askForButtonStatus() {
 
 //Checks for a received button state (keeps only the most recent)
 //and returns true if a new button state is available.
+//Returns false if not enough bytes are available or if header is invalid.
 bool checkForButtonStatus() {
-  bool received = Serial1.available();
-  while (Serial1.available()) {
+  while (Serial1.available() > bytesPerQuery) { Serial1.read(); } //Discard any extra bytes
+  
+  if (Serial1.available() == bytesPerQuery) {
+    headerByte = Serial1.read();      // headerByte should look like 0xFF or 0xFE. Low bit toggles pixel tweening.
+    //Sanity check
+    if ((headerByte & headerMask) != headerMask) {
+      headerByte = 0;
+      return false;
+    }
+    speedByte = Serial1.read();
+    brightnessByte = Serial1.read();
     btnStates = Serial1.read();
+    return true;
   }
-  return received;
+  headerByte = 0;
+  return false;
 }
 
 // Waits for up to 'timeout' milliseconds for the button state to arrive.
 // If it arrives, saves new state to btnStates and returns number of ms remaining.
 // If timeout, returns -1 and sets btnStates to 0.
 int waitForButtonStatus(int timeout) {
-  while (!Serial1.available() && timeout--) { delay(1); }
+  while ((Serial1.available() < bytesPerQuery) && timeout--) { delay(1); }
   
   if (timeout >= 0) { //Button status is available; go get it!
     checkForButtonStatus();
-  }
+  }g
   else { //Did not receive button status within timeout
     //Clear the previous button state
     btnStates = 0;
@@ -56,6 +75,24 @@ int waitForButtonStatus(int timeout) {
 void setPlayerButtonState(PlayerButtonState & p1State, PlayerButtonState & p2State) {
   p1State.raw = (btnStates >> 4);
   p2State.raw = (btnStates & 0x0F);
+}
+
+bool wasControllerReadSuccessfully() {
+  return ((headerByte & headerMask) == headerMask);
+}
+
+//Returns a game speed (ms per frame), within range 10ms-2sec
+uint8_t getControllerGameSpeed() {
+  return map(speedByte, 0, 255, 10, 2000);
+}
+
+//Returns a screen brightness, within range 0-255
+uint8_t getControllerGameBrightness() {
+  return brightnessByte;
+}
+
+bool getControllerGameTweening() {
+  return headerByte & pixelTweenBit;
 }
 
 //Queries the controller 8 times to determine the average response time

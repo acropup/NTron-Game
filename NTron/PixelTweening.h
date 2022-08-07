@@ -11,6 +11,7 @@ typedef struct PixelTween_ {
 
 PixelTween tweens[MAX_TWEENS];
 int numTweens = 0;
+bool pixelTweenEnabled = true;
 
 //Call when resetting game
 void clearPixelTweens() {
@@ -21,9 +22,15 @@ CRGB* TweenIgnoreOOBPixel; //Pointer to out-of-bounds catch-all pixel. No reason
 
 // Adds a PixelTween definition to be tweened over the next frame
 inline void addPixelTween(const PixelTween& pt) {
-  //Add this tween as long as we still have room and the pixel is not out-of-bounds
-  if(numTweens < MAX_TWEENS && pt.pixel != TweenIgnoreOOBPixel) {
-    tweens[numTweens++] = pt;
+  if (pixelTweenEnabled) {
+    //Add this tween as long as we still have room and the pixel is not out-of-bounds
+    if (numTweens < MAX_TWEENS && pt.pixel != TweenIgnoreOOBPixel) {
+      tweens[numTweens++] = pt;
+    }
+  }
+  else { //If Pixel tweening is disabled
+    //Immediately set the pixel to the ending colour
+    *(pt.pixel) = pt.toColour;
   }
 }
 

@@ -27,7 +27,9 @@ def query():
       return
     try:
       ser.write(b'?')
-      print(bin(ser.read()[0])[2:].zfill(8))
+      while True:
+        print(bin(ser.read()[0])[2:].zfill(8))
+        if ser.in_waiting == 0: break
     except:
       print('Serial failed. Trying to reconnect.')
       connect()

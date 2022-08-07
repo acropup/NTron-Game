@@ -21,6 +21,7 @@ int8_t framesUntilReset;
 unsigned long msPerFrame = 150;       //This can be changed real-time to change game speed.
 unsigned long msControllerDelay = 13; //Screen refresh is 7.8ms and Serial response is 3-5ms. Upper bound is 8+5 = 13ms.
 uint8_t screenBrightness = 32;
+extern bool pixelTweenEnabled = true;
 
 void resetGame() {
   timeElapsed = 0;
@@ -123,6 +124,11 @@ void loop() {
         Serial.print("ms. Button states: ");
         Serial.println(btnStates, BIN);
     #endif
+      }
+      if (wasControllerReadSuccessfully()) {
+        msPerFrame = getControllerGameSpeed();
+        screenBrightness = getControllerGameBrightness();
+        pixelTweenEnabled = getControllerGameTweening();
       }
       
       //Take all new button states and apply to each player
